@@ -83,7 +83,11 @@ src/
 
 
 
+
+
 ## 핵심 로직
+
+
 
 
 
@@ -141,11 +145,13 @@ export function PostEditDialogContainer() {
 
 
 
+
+
 ### 2. entity와 feature의 역할 경계
 
-각 모델, UI, 훅별로 entity와 feature를 구분하는 것에 가장 세밀한 기준 설정이 요구된다
+각 모델, UI, 훅별로 entity와 feature를 구분하는 것에 가장 세밀한 기준 설정이 요구됩니다.
 
-기본 골자는 다음과 같다 :
+기본 골자는 다음과 같습니다 :
 
 -  feature는 유즈 케이스 관점에서 사용자 시나리오의 동작에 대응한다
   -  UI는 비즈니스 로직이 추상화가 되어있어야 한다.
@@ -220,7 +226,10 @@ export function PostsBodyWidget() {
 
 - 추상화 단계를 고민하는 인지 부하를 감소할 수 있다 
 
-  
+
+
+
+
 
 ### 4. Custom Hook 추상화의 기준
 
@@ -258,7 +267,44 @@ export function CommentAddDialogContainer() {
 
 
 
+### 5. UI 분리의 기준
+
+```ts
+function Table({ children }) 
+function TableRow({ children, onClick })
+function TableCell({ children })
+
+function PostsTable({ posts, onEdit }) {
+  return (
+    <Table>
+      {posts.map(post => (
+        <TableRow key={post.id} onClick={() => onEdit(post)}>
+          <TableCell>{post.title}</TableCell>
+          <TableCell>{post.body}</TableCell>
+        </TableRow>
+      ))}
+    </Table>
+  );
+}
+```
+
+
+
+1. 단순히 자주 쓸 것 같은 컴포넌트라고 분리
+   - 다양한 데이터, 인터페이스에 맞추기 위해 컴포넌트가 많은 분기로 복잡도가 높아진다.
+
+2. 컴포넌트를 공통으로 사용(shared)하는 것은 엄격하게 해야한다
+   - 모양 뿐 아니라 같은 도메인 같은 인터페이스일 때 공통 컴포넌트화 해야한다.
+
+3. 이런 고민을 해결할 때 FSD 레이어에 맞춰서 한다고 생각하니 더 엄격하게 분리가 가능했다
+
+
+
+
+
 ## 기타 고민
+
+
 
 ### 1. 라이브러리 선택 기준
 
@@ -299,6 +345,8 @@ export function CommentAddDialogContainer() {
   - 데이터 변화를 선언하면 UI가 자동으로 반응
 
   - 선언적 데이터 동기화 - invalidateQueries로 자동 업데이트
+
+
 
 
 
