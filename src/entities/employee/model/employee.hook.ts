@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,6 +14,10 @@ import type { Employee } from "./employee.types";
 
 export function useSelectedEmployee(): [Employee | null, (employee: Employee | null) => void] {
   return useAtom(selectedEmployeeAtom);
+}
+
+export function useSelectedEmployeeValue(): Employee | null {
+  return useAtomValue(selectedEmployeeAtom);
 }
 
 export function useSetSelectedEmployee(): (employee: Employee | null) => void {

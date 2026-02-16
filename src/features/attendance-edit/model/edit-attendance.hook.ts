@@ -2,7 +2,7 @@ import {
   useAddAttendanceDialog,
   useCreateAttendanceForm,
   useEditAttendanceDialog,
-  useSelectedAttendance,
+  useSelectedAttendanceValue,
   useUpdateAttendanceForm,
 } from "@/entities/attendance";
 import { createModalFormHandler } from "@/shared";
@@ -32,7 +32,7 @@ export function useAttendanceAddDialogFlow(employeeId: number) {
 
 export function useAttendanceEditDialogFlow(employeeId: number) {
   const [isEditOpen, setIsEditOpen] = useEditAttendanceDialog();
-  const [selectedAttendance] = useSelectedAttendance();
+  const selectedAttendance = useSelectedAttendanceValue();
   const form = useUpdateAttendanceForm(selectedAttendance);
   const updateMutation = useUpdateAttendanceMutation(employeeId);
 

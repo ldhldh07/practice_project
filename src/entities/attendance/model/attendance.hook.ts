@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,6 +13,10 @@ import type { Attendance } from "./attendance.types";
 
 export function useSelectedAttendance(): [Attendance | null, (attendance: Attendance | null) => void] {
   return useAtom(selectedAttendanceAtom);
+}
+
+export function useSelectedAttendanceValue(): Attendance | null {
+  return useAtomValue(selectedAttendanceAtom);
 }
 
 export function useSetSelectedAttendance(): (attendance: Attendance | null) => void {

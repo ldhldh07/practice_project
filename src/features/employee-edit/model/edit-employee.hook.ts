@@ -2,7 +2,7 @@ import {
   useAddEmployeeDialog,
   useCreateEmployeeForm,
   useEditEmployeeDialog,
-  useSelectedEmployee,
+  useSelectedEmployeeValue,
   useUpdateEmployeeForm,
 } from "@/entities/employee";
 import { createModalFormHandler } from "@/shared";
@@ -32,7 +32,7 @@ export function useAddEmployeeDialogFlow() {
 
 export function useEditEmployeeDialogFlow() {
   const [isEditOpen, setIsEditOpen] = useEditEmployeeDialog();
-  const [selectedEmployee] = useSelectedEmployee();
+  const selectedEmployee = useSelectedEmployeeValue();
   const form = useUpdateEmployeeForm(selectedEmployee);
   const updateMutation = useUpdateEmployeeMutation();
 

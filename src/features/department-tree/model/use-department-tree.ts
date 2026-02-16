@@ -39,7 +39,7 @@ function useDepartmentTreeState() {
   const tree = useAtomValue(visibleDepartmentTreeAtom);
   const [search, setSearch] = useAtom(departmentTreeSearchAtom);
   const [selectedId, setSelectedId] = useAtom(selectedDepartmentIdAtom);
-  const [expandedIds] = useAtom(expandedDepartmentIdsAtom);
+  const expandedIds = useAtomValue(expandedDepartmentIdsAtom);
   const toggleExpand = useSetAtom(toggleDepartmentExpandAtom);
 
   return {

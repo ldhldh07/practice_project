@@ -1,6 +1,10 @@
 import { AlertCircle, Pencil, Plus } from "lucide-react";
 
-import { useSelectedAttendance, useSetAddAttendanceDialog, useSetEditAttendanceDialog } from "@/entities/attendance";
+import {
+  useSelectedAttendanceValue,
+  useSetAddAttendanceDialog,
+  useSetEditAttendanceDialog,
+} from "@/entities/attendance";
 import { EmployeeContent, useSetEditEmployeeDialog } from "@/entities/employee";
 import { AttendanceDialogsBySelectedEmployee, AttendanceListContainer } from "@/features/attendance-edit";
 import { EmployeeEditDialogContainer } from "@/features/employee-edit";
@@ -16,7 +20,7 @@ type EmployeeDetailPanelProps = {
 
 export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanelProps>) {
   const { employee, isLoading, isError } = useEmployeeDetailLoad(employeeId);
-  const [selectedAttendance] = useSelectedAttendance();
+  const selectedAttendance = useSelectedAttendanceValue();
 
   const setIsEditEmployeeOpen = useSetEditEmployeeDialog();
   const setIsAddAttendanceOpen = useSetAddAttendanceDialog();

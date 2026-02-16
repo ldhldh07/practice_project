@@ -1,10 +1,14 @@
 import { Pencil, Plus } from "lucide-react";
 
-import { useSelectedAttendance, useSetAddAttendanceDialog, useSetEditAttendanceDialog } from "@/entities/attendance";
+import {
+  useSelectedAttendanceValue,
+  useSetAddAttendanceDialog,
+  useSetEditAttendanceDialog,
+} from "@/entities/attendance";
 import {
   EmployeeContent,
   useEmployeeDetailDialog,
-  useSelectedEmployee,
+  useSelectedEmployeeValue,
   useSetEditEmployeeDialog,
 } from "@/entities/employee";
 import { AttendanceListContainer } from "@/features/attendance-edit";
@@ -13,12 +17,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "@/shared/ui/separator";
 
 export function EmployeeDetailDialogContainer() {
-  const [selectedEmployee] = useSelectedEmployee();
+  const selectedEmployee = useSelectedEmployeeValue();
   const [isDetailOpen, setIsDetailOpen] = useEmployeeDetailDialog();
   const setIsEditEmployeeOpen = useSetEditEmployeeDialog();
   const setIsAddAttendanceOpen = useSetAddAttendanceDialog();
   const setIsEditAttendanceOpen = useSetEditAttendanceDialog();
-  const [selectedAttendance] = useSelectedAttendance();
+  const selectedAttendance = useSelectedAttendanceValue();
 
   return (
     <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
