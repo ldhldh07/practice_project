@@ -12,6 +12,7 @@ export {
   useUpdateCommentMutation,
   useDeleteCommentMutation,
   useLikeCommentMutation,
+  prefetchCommentsByPost,
 } from "./model/comment.query";
 
 export {

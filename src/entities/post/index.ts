@@ -13,6 +13,9 @@ export {
   type UpdatePostFormData 
 } from "./model/post.hook";
 
+export { postsQueryKeys } from "./model/post.keys";
+export type { PostsListParams } from "./model/post.keys";
+
 export { postApi } from "./api/posts.api";
 
 export { PostAddDialog } from "./ui/post-add-dialog";

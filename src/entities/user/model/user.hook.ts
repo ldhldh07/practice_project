@@ -1,14 +1,22 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
-import { selectedUserAtom } from "./user.atom";
+import { currentUserIdAtom, isUserModalOpenAtom, selectedUserAtom } from "./user.atom";
 import { getUserFromCache, prefetchUserById } from "./user.query";
 import { userApi } from "../api/user.api";
 
 import type { User } from "./user.types";
 
-export function useSelectedUser() {
+export function useSelectedUser(): [User | null, (user: User | null) => void] {
   return useAtom(selectedUserAtom);
+}
+
+export function useCurrentUserId(): [number | null, (id: number | null) => void] {
+  return useAtom(currentUserIdAtom);
+}
+
+export function useUserModal(): [boolean, (open: boolean) => void] {
+  return useAtom(isUserModalOpenAtom);
 }
 
 export function useUserManager() {

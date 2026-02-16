@@ -1,21 +1,20 @@
 import { http } from "@/shared/api/client";
+import { validateSchema } from "@/shared/lib/validate";
 
-import { User } from "../model/user.types";
+import { userSchema, usersLiteResponseSchema } from "../model/user.schema";
 
-export type UserLite = Pick<User, "id" | "username" | "image">;
-
-interface GetUserLiteResponse {
-  users: UserLite[];
-}
+import type { UserSchema, UserLiteSchema } from "../model/user.schema";
 
 export const userApi = {
-  async getProfile(): Promise<UserLite[]> {
-    const data = await http.get<GetUserLiteResponse>("/users", {
+  async getProfile(): Promise<UserLiteSchema[]> {
+    const data = await http.get("/users", {
       params: { limit: 0, select: ["username", "image"] },
     });
-    return data.users;
+    const validated = validateSchema(usersLiteResponseSchema, data, "사용자 목록 응답 검증 실패");
+    return validated.users;
   },
-  async getById(id: number): Promise<User> {
-    return http.get<User>(`/users/${id}`);
+  async getById(id: number): Promise<UserSchema> {
+    const data = await http.get(`/users/${id}`);
+    return validateSchema(userSchema, data, "사용자 상세 응답 검증 실패");
   },
 } as const;

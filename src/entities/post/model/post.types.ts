@@ -1,13 +1,9 @@
-import { User } from "@/entities/user";
+import type { PostSchema, TagSchema } from "./post.schema";
 
-export type Post = {
-  id: number;
-  title: string;
-  body?: string;
-  userId?: number;
-  tags?: string[];
-  reactions?: { likes: number; dislikes: number };
+import type { User } from "@/entities/user";
+
+export type Post = PostSchema & {
   author?: User;
 };
 
-export type Tag = { slug: string; url?: string };
+export type Tag = TagSchema;
