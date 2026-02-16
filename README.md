@@ -1068,3 +1068,135 @@ presenter가 순수하게 유지되고 테스트하기도 쉬워집니다.
 이렇게 분리한 결과,
 버튼 레이아웃이나 아이콘을 바꿀 때 entity UI 한 곳만 수정하면 되고,
 feature container는 비즈니스 로직(어떤 다이얼로그를 열지)에만 집중할 수 있게 되었습니다.
+
+### 11. Entity Hook 래핑과 직접 Atom Export의 트레이드오프
+
+이 프로젝트를 진행하면서 entity 레이어에서 atom을 다루는 방식에 일관성이 없다는 걸 발견했습니다.
+
+employee와 attendance는 `*.hook.ts`에서 atom을 래핑하여 jotai 의존성을 숨기지만,
+department는 atom을 barrel export에서 직접 노출하여 feature가 `useAtom`, `useAtomValue`, `useSetAtom`을 직접 호출합니다.
+
+#### Employee/Attendance 패턴: Hook 래핑
+
+```ts
+// src/entities/employee/model/employee.hook.ts
+export function useSelectedEmployee(): [Employee | null, (employee: Employee | null) => void] {
+  return useAtom(selectedEmployeeAtom);
+}
+
+export function useSelectedEmployeeValue(): Employee | null {
+  return useAtomValue(selectedEmployeeAtom);
+}
+```
+
+```ts
+// src/entities/employee/index.ts
+export { useSelectedEmployee, useSelectedEmployeeValue } from "./model/employee.hook";
+```
+
+이 방식의 장점은 명확합니다.
+
+- feature에서 jotai를 직접 import하지 않음
+- 상태 라이브러리를 다른 것으로 교체할 때 entity hook만 수정하면 됨
+- 구현 세부사항이 완전히 숨겨짐
+
+#### Department 패턴: Atom 직접 Export
+
+```ts
+// src/entities/department/index.ts
+export {
+  departmentSourceAtom,
+  selectedDepartmentIdAtom,
+  expandedDepartmentIdsAtom,
+  departmentTreeSearchAtom,
+  visibleDepartmentTreeAtom,
+  toggleDepartmentExpandAtom,
+  selectDepartmentAtom,
+} from "./model/department-tree.atom";
+```
+
+```ts
+// src/features/department-tree/model/use-department-tree.ts
+const tree = useAtomValue(visibleDepartmentTreeAtom);
+const [search, setSearch] = useAtom(departmentTreeSearchAtom);
+const toggleExpand = useSetAtom(toggleDepartmentExpandAtom);
+```
+
+이 방식은 feature가 jotai에 직접 의존하지만,
+department atom 그래프 자체가 도메인 로직을 표현하고 있습니다.
+
+#### 왜 이 차이가 정당한지
+
+처음에는 "일관성을 위해 department도 hook으로 래핑해야 하나"라고 생각했습니다.
+
+하지만 실제로 department를 hook으로 감싸면 어떻게 될지 생각해보니,
+7~8개 atom 각각에 대해 다음과 같은 pass-through 래퍼가 늘어나게 됩니다.
+
+```ts
+// 이렇게 되면 너무 많은 래퍼가 생김
+export function useDepartmentSource() {
+  return useAtomValue(departmentSourceAtom);
+}
+export function useSelectedDepartmentId() {
+  return useAtom(selectedDepartmentIdAtom);
+}
+export function useExpandedDepartmentIds() {
+  return useAtom(expandedDepartmentIdsAtom);
+}
+export function useDepartmentTreeSearch() {
+  return useAtom(departmentTreeSearchAtom);
+}
+export function useVisibleDepartmentTree() {
+  return useAtomValue(visibleDepartmentTreeAtom);
+}
+export function useToggleDepartmentExpand() {
+  return useSetAtom(toggleDepartmentExpandAtom);
+}
+export function useSelectDepartment() {
+  return useSetAtom(selectDepartmentAtom);
+}
+```
+
+이 래퍼들은 구현을 숨기는 추상화가 아니라 단순 이름 변경에 가깝습니다.
+
+더 중요한 건, feature orchestration hook(`useDepartmentTree`)이 이미 atom 조합을 캡슐화하고 있다는 점입니다.
+
+```ts
+// src/features/department-tree/model/use-department-tree.ts
+export function useDepartmentTree() {
+  const { params } = useEmployeeSearchParams();
+  const state = useDepartmentTreeState(); // atom 조합을 여기서 캡슐화
+
+  useDepartmentTreeSourceSync();
+  useDepartmentTreeUrlSync(params.departmentId, state.setSelectedId);
+
+  return state;
+}
+```
+
+feature 레이어에서 이미 atom 조합을 오케스트레이션하고 있으므로,
+entity hook 래핑의 실익이 적었습니다.
+
+#### 기준 정리
+
+이 경험을 통해 다음과 같은 기준을 세웠습니다.
+
+**Hook 래핑이 유리한 경우:**
+
+- atom이 단순함 (다이얼로그 open/close, 단일 선택값)
+- 여러 feature에서 동일한 방식으로 사용됨
+- 상태 라이브러리 교체 가능성이 높음
+
+**Atom 직접 Export가 유리한 경우:**
+
+- atom 그래프가 복잡함 (source/derived/action 조합)
+- feature orchestration에서 직접 조합해야 함
+- entity 레이어에서 이미 도메인 로직을 표현하고 있음
+
+핵심은 "추상화의 실익이 있는가"입니다.
+
+단순히 "구현을 숨기기 위해" hook을 만드는 것보다,
+"변경 비용을 줄이거나 재사용성을 높이는" 추상화만 유지하는 게 더 실용적이었습니다.
+
+이 프로젝트에서는 employee/attendance처럼 단순한 상태는 hook으로 래핑하고,
+department처럼 복잡한 atom 그래프는 직접 export하는 방식으로 가져갔습니다.
