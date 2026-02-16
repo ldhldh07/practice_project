@@ -3,7 +3,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { RootLayout } from "@/app/ui/layout";
 import { ErrorBoundary } from "@/shared/ui/error-boundary";
 
-import PostsManagerPage from "./pages/posts-manager-page";
+import EmployeeManagerPage from "./pages/employee-manager-page";
 
 const App = () => {
   return (
@@ -25,7 +25,7 @@ const App = () => {
     >
       <Router>
         <RootLayout>
-          <PostsManagerPage />
+          <EmployeeManagerPage />
         </RootLayout>
       </Router>
     </ErrorBoundary>
