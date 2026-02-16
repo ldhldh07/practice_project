@@ -1,3 +1,4 @@
+import { Badge } from "@/shared/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 
 import type { Employee } from "../model/employee.types";
@@ -7,38 +8,49 @@ type EmployeesTableProps = {
   onSelect: (employee: Employee) => void;
 };
 
-const STATUS_LABEL: Record<Employee["status"], string> = {
-  active: "재직",
-  onLeave: "휴직",
-  resigned: "퇴사",
+const STATUS_CONFIG: Record<Employee["status"], { label: string; variant: "success" | "warning" | "destructive" }> = {
+  active: { label: "재직", variant: "success" },
+  onLeave: { label: "휴직", variant: "warning" },
+  resigned: { label: "퇴사", variant: "destructive" },
 };
 
 export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableProps>) {
+  if (employees.length === 0) {
+    return (
+      <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+        조건에 맞는 직원이 없습니다
+      </div>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>
-        <TableRow>
+        <TableRow className="hover:bg-transparent">
           <TableHead>이름</TableHead>
           <TableHead>이메일</TableHead>
           <TableHead>전화번호</TableHead>
           <TableHead>직책</TableHead>
-          <TableHead>부서 ID</TableHead>
           <TableHead>입사일</TableHead>
           <TableHead>상태</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {employees.map((employee) => (
-          <TableRow key={employee.id} className="cursor-pointer" onClick={() => onSelect(employee)}>
-            <TableCell>{employee.name}</TableCell>
-            <TableCell>{employee.email}</TableCell>
-            <TableCell>{employee.phone}</TableCell>
-            <TableCell>{employee.position}</TableCell>
-            <TableCell>{employee.departmentId}</TableCell>
-            <TableCell>{employee.hireDate}</TableCell>
-            <TableCell>{STATUS_LABEL[employee.status]}</TableCell>
-          </TableRow>
-        ))}
+        {employees.map((employee) => {
+          const status = STATUS_CONFIG[employee.status];
+          return (
+            <TableRow key={employee.id} className="cursor-pointer" onClick={() => onSelect(employee)}>
+              <TableCell className="font-medium">{employee.name}</TableCell>
+              <TableCell className="text-muted-foreground">{employee.email}</TableCell>
+              <TableCell className="text-muted-foreground">{employee.phone}</TableCell>
+              <TableCell>{employee.position}</TableCell>
+              <TableCell className="text-muted-foreground">{employee.hireDate}</TableCell>
+              <TableCell>
+                <Badge variant={status.variant}>{status.label}</Badge>
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

@@ -1,4 +1,6 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
+
+import { cn } from "@shared/lib/cn";
 
 import type { DepartmentTreeNode } from "../model/department.types";
 
@@ -34,23 +36,37 @@ function DepartmentTreeNodeItem({
   return (
     <div>
       <div
-        className={`flex items-center h-9 px-2 rounded cursor-pointer text-sm ${isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-gray-100"}`}
-        style={{ paddingLeft: `${depth * 12 + 8}px` }}
+        className={cn(
+          "group flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm cursor-pointer transition-colors",
+          isSelected
+            ? "bg-accent text-accent-foreground font-medium"
+            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+        )}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={() => onSelect(node.id)}
       >
         {hasChildren ? (
           <button
             type="button"
-            className="mr-1"
+            className="flex-shrink-0 rounded-sm p-0.5 hover:bg-accent"
             onClick={(e) => {
               e.stopPropagation();
               onToggle(node.id);
             }}
           >
-            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </button>
         ) : (
-          <span className="w-[18px] mr-1" />
+          <span className="w-[18px] flex-shrink-0" />
+        )}
+        {hasChildren ? (
+          isExpanded ? (
+            <FolderOpen className="h-4 w-4 flex-shrink-0 text-primary/70" />
+          ) : (
+            <Folder className="h-4 w-4 flex-shrink-0 text-primary/70" />
+          )
+        ) : (
+          <span className="w-4 flex-shrink-0" />
         )}
         <span className="truncate">{node.name}</span>
       </div>
@@ -74,7 +90,7 @@ function DepartmentTreeNodeItem({
 
 export function DepartmentTree({ nodes, selectedId, expandedIds, onSelect, onToggle }: Readonly<DepartmentTreeProps>) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       {nodes.map((node) => (
         <DepartmentTreeNodeItem
           key={node.id}
