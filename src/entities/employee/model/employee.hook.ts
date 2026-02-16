@@ -16,6 +16,10 @@ export function useSelectedEmployee(): [Employee | null, (employee: Employee | n
   return useAtom(selectedEmployeeAtom);
 }
 
+export function useSetSelectedEmployee(): (employee: Employee | null) => void {
+  return useSetAtom(selectedEmployeeAtom);
+}
+
 export function useEmployeeDetailDialog(): [boolean, (open: boolean) => void] {
   return useAtom(isEmployeeDetailDialogOpenAtom);
 }

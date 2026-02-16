@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { useNavigate } from "react-router-dom";
 
 import { selectedDepartmentDescendantsAtom } from "@/entities/department";
-import { EmployeesTable, useSelectedEmployee } from "@/entities/employee";
+import { EmployeesTable, useSetSelectedEmployee } from "@/entities/employee";
 import { EmployeeFilterContainer } from "@/features/employee-filter";
 import { useEmployeesQuery } from "@/features/employee-load";
 import { getEmployeeDetailHref } from "@/pages";
@@ -14,7 +14,7 @@ export function EmployeeBrowsePanel() {
   const navigate = useNavigate();
   const { params, setParams } = useEmployeeSearchParams();
   const selectedDescendants = useAtomValue(selectedDepartmentDescendantsAtom);
-  const [, setSelectedEmployee] = useSelectedEmployee();
+  const setSelectedEmployee = useSetSelectedEmployee();
 
   const departmentIds = selectedDescendants.length > 0 ? selectedDescendants.join(",") : undefined;
 

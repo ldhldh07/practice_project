@@ -15,6 +15,10 @@ export function useSelectedAttendance(): [Attendance | null, (attendance: Attend
   return useAtom(selectedAttendanceAtom);
 }
 
+export function useSetSelectedAttendance(): (attendance: Attendance | null) => void {
+  return useSetAtom(selectedAttendanceAtom);
+}
+
 export function useAddAttendanceDialog(): [boolean, (open: boolean) => void] {
   return useAtom(isAddAttendanceDialogOpenAtom);
 }

@@ -13,6 +13,7 @@ export type { EmployeesListParams } from "./model/employee.keys";
 
 export {
   useSelectedEmployee,
+  useSetSelectedEmployee,
   useEmployeeDetailDialog,
   useSetEmployeeDetailDialog,
   useAddEmployeeDialog,

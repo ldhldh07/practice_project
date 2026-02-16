@@ -7,7 +7,7 @@ import {
   EmployeeContent,
   employeeApi,
   employeeQueryKeys,
-  useSelectedEmployee,
+  useSetSelectedEmployee,
   useSetEditEmployeeDialog,
 } from "@/entities/employee";
 import { AttendanceDialogsBySelectedEmployee, AttendanceListContainer } from "@/features/attendance-edit";
@@ -21,7 +21,7 @@ type EmployeeDetailPagePanelProps = {
 };
 
 export function EmployeeDetailPagePanel({ employeeId }: Readonly<EmployeeDetailPagePanelProps>) {
-  const [, setSelectedEmployee] = useSelectedEmployee();
+  const setSelectedEmployee = useSetSelectedEmployee();
   const [selectedAttendance] = useSelectedAttendance();
 
   const setIsEditEmployeeOpen = useSetEditEmployeeDialog();

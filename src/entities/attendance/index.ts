@@ -7,6 +7,7 @@ export { attendanceQueryKeys } from "./model/attendance.keys";
 
 export {
   useSelectedAttendance,
+  useSetSelectedAttendance,
   useAddAttendanceDialog,
   useSetAddAttendanceDialog,
   useEditAttendanceDialog,
