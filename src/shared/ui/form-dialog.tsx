@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
-
 import { Button } from "./button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
+
+import type { ReactNode } from "react";
 
 interface FormDialogProps {
   open: boolean;
@@ -28,10 +28,15 @@ export function FormDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">{children}</div>
-        <Button onClick={() => void onSubmit()} disabled={disabled}>
-          {submitLabel}
-        </Button>
+        <div className="grid gap-4 py-2">{children}</div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            취소
+          </Button>
+          <Button onClick={() => void onSubmit()} disabled={disabled}>
+            {submitLabel}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
