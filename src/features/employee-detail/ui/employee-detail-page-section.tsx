@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { EmployeeDetailCard } from "@/entities/employee";
@@ -17,8 +18,9 @@ export function EmployeeDetailPageSection({ employeeId }: Readonly<EmployeeDetai
       action={
         <Link
           to={EMPLOYEE_MANAGER_ROUTE}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 py-2 px-4 border border-gray-300 bg-transparent text-gray-700 hover:bg-gray-100"
+          className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         >
+          <ArrowLeft className="h-4 w-4" />
           {EMPLOYEE_DETAIL_TEXT.backToList}
         </Link>
       }

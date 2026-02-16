@@ -29,23 +29,27 @@ export function EmployeeBrowsePanel() {
   });
 
   return (
-    <div className="space-y-4 border rounded-md bg-white p-4">
+    <div className="space-y-4">
       <EmployeeFilterContainer />
-      <EmployeesTable
-        employees={data?.employees ?? []}
-        onSelect={(employee) => {
-          setSelectedEmployee(employee);
-          navigate(getEmployeeDetailHref(employee.id));
-        }}
-      />
-      <Pagination
-        total={data?.total ?? 0}
-        skip={params.skip}
-        limit={params.limit}
-        onChangeLimit={(value) => setParams({ limit: Number(value), skip: 0 })}
-        onPrev={() => setParams({ skip: Math.max(0, params.skip - params.limit) })}
-        onNext={() => setParams({ skip: params.skip + params.limit })}
-      />
+      <div className="rounded-xl border bg-card shadow-sm">
+        <EmployeesTable
+          employees={data?.employees ?? []}
+          onSelect={(employee) => {
+            setSelectedEmployee(employee);
+            navigate(getEmployeeDetailHref(employee.id));
+          }}
+        />
+        <div className="border-t px-4 py-3">
+          <Pagination
+            total={data?.total ?? 0}
+            skip={params.skip}
+            limit={params.limit}
+            onChangeLimit={(value) => setParams({ limit: Number(value), skip: 0 })}
+            onPrev={() => setParams({ skip: Math.max(0, params.skip - params.limit) })}
+            onNext={() => setParams({ skip: params.skip + params.limit })}
+          />
+        </div>
+      </div>
     </div>
   );
 }
