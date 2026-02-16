@@ -85,23 +85,13 @@ src/
 - ui
 
 ```ts
-import { EmployeeEditDialog, useSelectedEmployee, useUpdateEmployeeForm } from "@/entities/employee";
-import { createModalFormHandler } from "@/shared";
+import { EmployeeEditDialog } from "@/entities/employee";
 
-import { useEmployeeActions, useEmployeeDialogState } from "../model/edit-employee.hook";
+import { useEditEmployeeDialogFlow } from "../model/edit-employee.hook";
 
 export function EmployeeEditDialogContainer() {
   // Custom Hook으로 추상화된 비즈니스 로직
-  const { isEditOpen, setIsEditOpen } = useEmployeeDialogState();
-  const [selectedEmployee] = useSelectedEmployee();
-  const actions = useEmployeeActions();
-  const form = useUpdateEmployeeForm(selectedEmployee);
-
-  // handlers
-  const handleSubmit = createModalFormHandler(form, () => setIsEditOpen(false), false)(async (data) => {
-    if (!selectedEmployee) return;
-    await actions.update({ employeeId: selectedEmployee.id, params: data });
-  });
+  const { isEditOpen, setIsEditOpen, form, handleSubmit } = useEditEmployeeDialogFlow();
 
   // entities의 컴포넌트
   return <EmployeeEditDialog open={isEditOpen} onOpenChange={setIsEditOpen} form={form} onSubmit={handleSubmit} />;
@@ -159,9 +149,11 @@ import { useSelectedEmployee, useEditEmployeeDialog } from "@/entities/employee"
 export function EmployeeEditDialogContainer() {
   const [selectedEmployee, setSelectedEmployee] = useSelectedEmployee(); // 구현이 숨겨져 있음 -> 수정하지 않아도 된다
   const [isEditOpen, setIsEditOpen] = useEditEmployeeDialog();
+  const updateMutation = useUpdateEmployeeMutation();
 
   const handleSubmit = async (data) => {
-    await employeeActions.update({ employeeId: selectedEmployee.id, params: data });
+    if (!selectedEmployee) return;
+    await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
     setIsEditOpen(false);
   };
 }
@@ -199,14 +191,18 @@ export function EmployeeBodyWidget() {
 
 ### 4. Custom Hook 추상화의 기준
 
-비즈니스 로직을 Custom Hook으로 추상화할 때 어느 수준의 덩어리로 추상화를 해야할지 그 기준도 고민이 됐습니다.
+비즈니스 로직을 Custom Hook으로 추상화할 때, 이름보다 중요한 것은 "범위를 어디까지 둘지"에 대한 기준이었습니다.
 
-훅 추상화는 두 가지 축을 함께 고려해야 합니다:
+이번 프로젝트에서는 아래 4가지 질문으로 훅 범위를 결정했습니다.
 
-1. **유저 시나리오 단위**: 하나의 사용자 흐름을 end-to-end로 오케스트레이션하는 단위
-2. **관심사 독립성**: 하나의 훅에 너무 많은 관심사를 넣지 않고, 독립적인 관심사는 분리
-
-이 두 축을 함께 적용하면 자연스럽게 적절한 추상화 수준이 결정됩니다.
+1. **한 사용자 동작을 끝까지 책임지는가?**
+   - 예: 다이얼로그 열림 상태, 폼, 제출 후 닫기까지 한 흐름이면 하나의 훅으로 묶습니다.
+2. **독립적인 관심사가 섞였는가?**
+   - 재사용 가능성이 다른 관심사(fetch, URL 동기화, 로컬 상태)는 분리합니다.
+3. **라우팅/URL 책임을 침범하는가?**
+   - URL 파라미터 해석이나 라우트 결정은 page에서 소유하고, feature에는 값/콜백으로 주입합니다.
+4. **추상화의 실익이 있는가?**
+   - 파일만 분리하는 추출이 아니라, 구현을 숨겨 변경 비용을 낮추는 추상화인지 확인합니다.
 
 #### 유저 시나리오 단위 오케스트레이션
 
@@ -217,10 +213,10 @@ export function EmployeeBodyWidget() {
 export function useAddEmployeeDialogFlow() {
   const [isOpen, setIsOpen] = useAddEmployeeDialog();
   const form = useCreateEmployeeForm();
-  const actions = useEmployeeActions();
+  const createMutation = useCreateEmployeeMutation();
 
   const handleSubmit = async (data) => {
-    await actions.create(data);
+    await createMutation.mutateAsync(data);
     setIsOpen(false);
   };
 
@@ -231,11 +227,11 @@ export function useEditEmployeeDialogFlow() {
   const [isOpen, setIsOpen] = useEditEmployeeDialog();
   const [selectedEmployee] = useSelectedEmployee();
   const form = useUpdateEmployeeForm(selectedEmployee);
-  const actions = useEmployeeActions();
+  const updateMutation = useUpdateEmployeeMutation();
 
   const handleSubmit = async (data) => {
     if (!selectedEmployee) return;
-    await actions.update({ employeeId: selectedEmployee.id, params: data });
+    await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
     setIsOpen(false);
   };
 
@@ -247,7 +243,7 @@ export function useEditEmployeeDialogFlow() {
 
 #### 관심사 독립성에 따른 분리
 
-하나의 시나리오 안에서도 독립적인 관심사는 서브훅으로 분리합니다.
+하나의 시나리오 안에서도 재사용 가능성과 변경 주기가 다른 관심사는 분리합니다.
 
 ```typescript
 // before
@@ -288,6 +284,32 @@ export function useDepartmentTree() {
 - 데이터 fetch, URL 동기화, 상태 관리 등 각 관심사가 명확히 분리됩니다
 - 오케스트레이터 훅은 이들을 조합하는 역할만 담당합니다
 
+#### URL/라우팅 책임의 분리
+
+URL과 라우팅은 page의 책임으로 두고, feature는 라우트 구현을 직접 알지 않게 구성했습니다.
+
+```tsx
+// pages/employee-manager/EmployeeManagerPage.tsx
+import { getEmployeeDetailHref } from "@/shared/config/routes";
+
+export function EmployeeManagerPage() {
+  return <EmployeeBodyWidget toEmployeeDetailHref={getEmployeeDetailHref} />;
+}
+```
+
+```tsx
+// features/employee-browse/model/use-employee-browse.ts
+type UseEmployeeBrowseParams = {
+  toDetailHref: (employeeId: number) => string;
+};
+
+export function useEmployeeBrowse({ toDetailHref }: Readonly<UseEmployeeBrowseParams>) {
+  // feature는 href 생성 규칙을 모르고 주입받아 사용
+}
+```
+
+이렇게 하면 route 구조가 바뀌어도 page/route 계층에서만 수정하면 되고, feature의 재사용성과 독립성을 유지할 수 있습니다.
+
 #### 패스스루 훅 안티패턴
 
 entity 훅을 그대로 return만 하는 feature 훅은 시나리오 의미가 없으므로 제거 대상입니다.
@@ -317,11 +339,11 @@ export function useDeleteEmployeeAction() {
 export function useAddEmployeeDialogFlow() {
   const [isOpen, setIsOpen] = useAddEmployeeDialog();
   const form = useCreateEmployeeForm();
-  const actions = useEmployeeActions();
+  const createMutation = useCreateEmployeeMutation();
 
   // 폼 제출 + 다이얼로그 닫기 + 에러 처리 등 시나리오 전체를 오케스트레이션
   const handleSubmit = async (data) => {
-    await actions.create(data);
+    await createMutation.mutateAsync(data);
     setIsOpen(false);
   };
 
@@ -331,12 +353,29 @@ export function useAddEmployeeDialogFlow() {
 
 이 훅은 다이얼로그 상태, 폼, 액션을 조합하여 "직원 추가 다이얼로그"라는 완결된 시나리오를 제공합니다.
 
+#### 추출과 추상화의 차이
+
+- **추출**: 코드를 파일로 옮기는 것
+- **추상화**: 사용처에서 구현 세부사항을 몰라도 되게 만드는 것
+
+커스텀 훅은 "파일 수를 늘리는 목적"이 아니라, 구현체 변경 시 사용처를 덜 바꾸기 위한 목적일 때만 유지합니다.
+
 #### 정리
 
 - **유저 시나리오 기반으로 묶되**, 독립적인 시나리오는 억지로 하나로 합치지 않습니다
 - **관심사가 독립적이면 서브훅으로 분리**하여 오케스트레이터 훅이 조합하도록 합니다
+- **URL/라우팅 책임은 page에서 소유**하고 feature에는 값/콜백으로 전달합니다
 - **패스스루 훅은 제거**하고, entity 훅을 직접 사용하거나 실제 오케스트레이션을 제공하는 훅으로 대체합니다
-- useState의 형태로서 일관성 있는 코드를 작성할 수 있습니다
+
+#### 참고한 기준
+
+커스텀 훅 범위 기준은 다음 레퍼런스에서 공통으로 확인한 원칙을 반영했습니다.
+
+- `weather`: 과도한 통합 훅 대신 관심사 분리
+- `exchange_practice`: 컨테이너는 What, 훅은 How
+- `op_practice`: feature 훅의 시나리오 오케스트레이션
+- `tb_practice`: URL/page 소유권, 추출 vs 추상화 기준
+- `vineyard_backoffice`: 문서화 체크리스트 기반 검증 관점
 
 ### 5. UI 분리의 기준
 
