@@ -5,7 +5,6 @@ import {
   useSelectedAttendanceValue,
   useUpdateAttendanceForm,
 } from "@/entities/attendance";
-import { createModalFormHandler } from "@/shared";
 
 import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "./attendance.mutation";
 
@@ -14,12 +13,10 @@ export function useAttendanceAddDialogFlow(employeeId: number) {
   const form = useCreateAttendanceForm();
   const createMutation = useCreateAttendanceMutation(employeeId);
 
-  const handleSubmit = createModalFormHandler(
-    form,
-    () => setIsAddOpen(false),
-    true,
-  )(async (data) => {
-    await createMutation.mutateAsync(data);
+  const handleSubmit = form.handleSubmit((data) => {
+    createMutation.mutate(data);
+    setIsAddOpen(false);
+    form.reset();
   });
 
   return {
@@ -36,13 +33,10 @@ export function useAttendanceEditDialogFlow(employeeId: number) {
   const form = useUpdateAttendanceForm(selectedAttendance);
   const updateMutation = useUpdateAttendanceMutation(employeeId);
 
-  const handleSubmit = createModalFormHandler(
-    form,
-    () => setIsEditOpen(false),
-    false,
-  )(async (data) => {
+  const handleSubmit = form.handleSubmit((data) => {
     if (!selectedAttendance) return;
-    await updateMutation.mutateAsync({ attendanceId: selectedAttendance.id, payload: data });
+    updateMutation.mutate({ attendanceId: selectedAttendance.id, payload: data });
+    setIsEditOpen(false);
   });
 
   return {

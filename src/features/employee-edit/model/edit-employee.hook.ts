@@ -5,7 +5,6 @@ import {
   useSelectedEmployeeValue,
   useUpdateEmployeeForm,
 } from "@/entities/employee";
-import { createModalFormHandler } from "@/shared";
 
 import { useCreateEmployeeMutation, useUpdateEmployeeMutation } from "./employee.mutation";
 
@@ -14,12 +13,10 @@ export function useAddEmployeeDialogFlow() {
   const form = useCreateEmployeeForm();
   const createMutation = useCreateEmployeeMutation();
 
-  const handleSubmit = createModalFormHandler(
-    form,
-    () => setIsAddOpen(false),
-    true,
-  )(async (data) => {
-    await createMutation.mutateAsync(data);
+  const handleSubmit = form.handleSubmit((data) => {
+    createMutation.mutate(data);
+    setIsAddOpen(false);
+    form.reset();
   });
 
   return {
@@ -36,13 +33,10 @@ export function useEditEmployeeDialogFlow() {
   const form = useUpdateEmployeeForm(selectedEmployee);
   const updateMutation = useUpdateEmployeeMutation();
 
-  const handleSubmit = createModalFormHandler(
-    form,
-    () => setIsEditOpen(false),
-    false,
-  )(async (data) => {
+  const handleSubmit = form.handleSubmit((data) => {
     if (!selectedEmployee) return;
-    await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
+    updateMutation.mutate({ employeeId: selectedEmployee.id, params: data });
+    setIsEditOpen(false);
   });
 
   return {
