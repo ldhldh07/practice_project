@@ -1,6 +1,6 @@
-import type { ZodIssue } from "zod";
-
 import { ERROR_CODES } from "./error-codes";
+
+import type { ZodIssue } from "zod";
 
 export class BaseError extends Error {
   readonly code: string;
@@ -36,7 +36,7 @@ export class BadRequestError extends ApiError {
 }
 
 export class NetworkError extends BaseError {
-  constructor(message = "네트워크 오류가 발생했습니다.", code = ERROR_CODES.NETWORK_ERROR) {
+  constructor(message = "네트워크 오류가 발생했습니다.", code: string = ERROR_CODES.NETWORK_ERROR) {
     super(message, code);
   }
 }

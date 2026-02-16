@@ -1,8 +1,7 @@
 import { ChangeEventHandler, useCallback } from "react";
 
-import { PostFilter } from "@/entities/post/ui/post-filter";
+import { PostFilter, usePostSearchParams } from "@/entities/post";
 import type { SortBy, SortOrder } from "@/entities/post";
-import { usePostSearchParams } from "@/entities/post";
 
 import { useTagsQuery } from "../model/use-tags.query";
 

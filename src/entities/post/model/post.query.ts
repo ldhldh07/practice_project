@@ -31,7 +31,7 @@ export function useCreatePostMutation() {
       const optimisticPost: Post = {
         id: optimisticId,
         title: payload.title,
-        body: payload.body,
+        body: payload.body ?? "",
         userId: payload.userId,
       };
 

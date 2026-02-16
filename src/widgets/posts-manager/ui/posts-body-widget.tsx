@@ -1,10 +1,9 @@
-import { CardContent } from "@/shared/ui/card";
-import { Pagination } from "@/shared/ui/pagination";
-
 import { usePostSearchParams } from "@/entities/post";
 import type { SortOrder } from "@/entities/post";
 import { PostFilterContainer } from "@/features/post-filter";
 import { usePostsQuery } from "@/features/post-load";
+import { CardContent } from "@/shared/ui/card";
+import { Pagination } from "@/shared/ui/pagination";
 
 import { PostsTableContainer } from "./posts-table-container";
 

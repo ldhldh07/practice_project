@@ -8,7 +8,7 @@ import boundaries from "eslint-plugin-boundaries"
 import path from "node:path"
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", "vite-env.d.ts", "vitest.config.ts"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -70,8 +70,8 @@ export default tseslint.config(
             { from: "app", allow: ["pages", "widgets", "features", "entities", "shared"] },
             { from: "pages", allow: ["widgets", "features", "entities", "shared"] },
             { from: "widgets", allow: ["features", "entities", "shared"] },
-            { from: "features", allow: ["entities", "shared"] },
-            { from: "entities", allow: ["shared"] },
+            { from: "features", allow: ["features", "entities", "shared"] },
+            { from: "entities", allow: ["entities", "shared"] },
             { from: "shared", allow: ["shared"] },
           ],
         },

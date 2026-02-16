@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 
 import { currentUserIdAtom, isUserModalOpenAtom, selectedUserAtom } from "./user.atom";
 import { getUserFromCache, prefetchUserById } from "./user.query";

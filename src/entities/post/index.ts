@@ -28,3 +28,5 @@ export { PostEditDialog } from "./ui/post-edit-dialog";
 export { PostContent } from "./ui/post-content";
 
 export { PostsTable } from "./ui/posts-table";
+
+export { PostFilter } from "./ui/post-filter";
