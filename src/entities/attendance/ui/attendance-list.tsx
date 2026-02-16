@@ -50,7 +50,7 @@ export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceList
               <TableCell>
                 <Badge variant={status.variant}>{status.label}</Badge>
               </TableCell>
-              <TableCell className="max-w-[200px] truncate text-muted-foreground">{item.note || "-"}</TableCell>
+              <TableCell className="max-w-48 truncate text-muted-foreground">{item.note || "-"}</TableCell>
             </TableRow>
           );
         })}
