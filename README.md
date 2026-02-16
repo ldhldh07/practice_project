@@ -971,3 +971,100 @@ React나 Query 같은 안정적인 라이브러리는 캐시 히트율이 높아
 
 이렇게 시맨틱 태그를 적용한 결과,
 화면 렌더링은 동일하지만 접근성 도구와 검색 엔진이 페이지 구조를 더 정확하게 파악할 수 있게 되었습니다.
+
+### 10. Container-Presenter 패턴과 핸들러 prop 의미론
+
+프로젝트 전반에 Container-Presenter 패턴을 적용했지만,
+코드 리뷰 중 직원 상세 패널과 다이얼로그에서 동일한 버튼 구조가 중복된 걸 발견했습니다.
+
+두 곳 모두 "직원 정보 수정", "근태 추가", "선택 근태 수정" 버튼을 인라인으로 렌더링하고 있었고,
+각각 `setIsEditEmployeeOpen(true)` 같은 setter 호출을 직접 포함하고 있었습니다.
+
+이 문제를 해결하기 위해 `EmployeeActionBar` entity presenter를 추출했습니다.
+
+#### Before: 인라인 버튼 중복
+
+```tsx
+// src/features/employee-detail/ui/employee-detail-panel.tsx (before)
+<div className="flex gap-2">
+  <Button variant="outline" size="sm" onClick={() => setIsEditEmployeeOpen(true)}>
+    <Pencil />
+    직원 정보 수정
+  </Button>
+  <Button variant="outline" size="sm" onClick={() => setIsAddAttendanceOpen(true)}>
+    <Plus />
+    근태 추가
+  </Button>
+  <Button variant="outline" size="sm" disabled={!selectedAttendance} onClick={() => setIsEditAttendanceOpen(true)}>
+    <Pencil />
+    선택 근태 수정
+  </Button>
+</div>
+```
+
+이 코드는 다이얼로그 컨테이너에도 거의 동일하게 존재했습니다.
+
+#### After: Entity Presenter 추출
+
+```tsx
+// src/entities/employee/ui/employee-action-bar.tsx
+type EmployeeActionBarProps = {
+  onEditEmployee: () => void;
+  onAddAttendance: () => void;
+  onEditAttendance: () => void;
+  canEditAttendance: boolean;
+};
+
+export function EmployeeActionBar({
+  onEditEmployee,
+  onAddAttendance,
+  onEditAttendance,
+  canEditAttendance,
+}: Readonly<EmployeeActionBarProps>) {
+  return (
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" onClick={onEditEmployee}>
+        <Pencil className="h-4 w-4" />
+        직원 정보 수정
+      </Button>
+      <Button variant="outline" size="sm" onClick={onAddAttendance}>
+        <Plus className="h-4 w-4" />
+        근태 추가
+      </Button>
+      <Button variant="outline" size="sm" disabled={!canEditAttendance} onClick={onEditAttendance}>
+        <Pencil className="h-4 w-4" />
+        선택 근태 수정
+      </Button>
+    </div>
+  );
+}
+```
+
+```tsx
+// src/features/employee-detail/ui/employee-detail-panel.tsx (after)
+<EmployeeActionBar
+  onEditEmployee={() => setIsEditEmployeeOpen(true)}
+  onAddAttendance={() => setIsAddAttendanceOpen(true)}
+  onEditAttendance={() => setIsEditAttendanceOpen(true)}
+  canEditAttendance={!!selectedAttendance}
+/>
+```
+
+#### 핸들러 prop 의미론 원칙
+
+이 과정에서 중요했던 건 핸들러 prop 이름을 "구현이 아닌 의미"로 짓는 것이었습니다.
+
+- ❌ `onSetEditOpen`: 구현 세부사항을 드러냄
+- ✅ `onEditEmployee`: 사용자 의도를 표현
+
+Entity UI는 "무엇을 할지"만 알고, "어떻게 할지"는 container가 결정합니다.
+
+같은 버튼 구조가 다이얼로그와 패널에서 중복되었는데,
+presenter로 추출하면 한 곳에서 관리할 수 있고 수정 포인트가 줄어듭니다.
+
+`canEditAttendance`처럼 조건부 상태도 boolean prop으로 전달하면
+presenter가 순수하게 유지되고 테스트하기도 쉬워집니다.
+
+이렇게 분리한 결과,
+버튼 레이아웃이나 아이콘을 바꿀 때 entity UI 한 곳만 수정하면 되고,
+feature container는 비즈니스 로직(어떤 다이얼로그를 열지)에만 집중할 수 있게 되었습니다.
