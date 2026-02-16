@@ -856,3 +856,118 @@ build: {
 이렇게 분리한 결과 최대 청크 크기가 502KB에서 220KB로 감소했고,
 React나 Query 같은 안정적인 라이브러리는 캐시 히트율이 높아져서
 배포 후 사용자 로딩 시간이 줄어들었습니다.
+
+### 9. 시맨틱 HTML 태그 적용
+
+시맨틱 태그는 시각적으로는 `<div>`와 차이가 없지만,
+스크린 리더와 검색 엔진이 페이지 구조를 이해하는 데 도움을 줍니다.
+
+이번 프로젝트에서는 접근성과 SEO를 고려해 10개 파일에서 `<div>`를 시맨틱 태그로 교체했습니다.
+
+#### 1. Form 다이얼로그: `<form>` 래핑
+
+```tsx
+// src/shared/ui/form-dialog.tsx
+// before
+<div>
+  <DialogHeader>...</DialogHeader>
+  <div className="grid gap-4 py-4">{children}</div>
+  <DialogFooter>
+    <Button type="submit">저장</Button>
+  </DialogFooter>
+</div>
+
+// after
+<form onSubmit={handleSubmit}>
+  <DialogHeader>...</DialogHeader>
+  <div className="grid gap-4 py-4">{children}</div>
+  <DialogFooter>
+    <Button type="submit">저장</Button>
+  </DialogFooter>
+</form>
+```
+
+`<form>` 태그로 감싸면 Enter 키 제출이 자동으로 동작하고,
+브라우저 내장 폼 검증 기능도 활용할 수 있어서 UX가 개선됩니다.
+
+#### 2. 검색 필터: `<search>` 랜드마크
+
+```tsx
+// src/entities/employee/ui/employee-filter.tsx
+// before
+<div className="flex gap-2">
+  <Input placeholder="이름, 이메일, 전화번호로 검색" />
+  <Select>...</Select>
+</div>
+
+// after
+<search className="flex gap-2">
+  <Input placeholder="이름, 이메일, 전화번호로 검색" />
+  <Select>...</Select>
+</search>
+```
+
+`<search>` 태그는 스크린 리더가 검색 영역임을 인식하도록 도와줍니다.
+
+#### 3. 레이아웃 구조: `<aside>` + `<section>`
+
+```tsx
+// src/widgets/employee-manager/ui/employee-body-widget.tsx
+// before
+<div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
+  <div className="border rounded-md">
+    <DepartmentTreeContainer />
+  </div>
+  <div>
+    <EmployeeBrowsePanel />
+  </div>
+</div>
+
+// after
+<div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
+  <aside className="border rounded-md">
+    <DepartmentTreeContainer />
+  </aside>
+  <section>
+    <EmployeeBrowsePanel />
+  </section>
+</div>
+```
+
+`<aside>`는 사이드바 영역을, `<section>`은 메인 콘텐츠 영역을 명시적으로 표현합니다.
+
+#### 4. 페이지네이션: `<nav>` + `aria-label`
+
+```tsx
+// src/shared/ui/pagination.tsx
+// before
+<div className="flex items-center gap-2">
+  <Button>이전</Button>
+  <Button>다음</Button>
+</div>
+
+// after
+<nav aria-label="페이지 이동" className="flex items-center gap-2">
+  <Button>이전</Button>
+  <Button>다음</Button>
+</nav>
+```
+
+`<nav>` 태그는 네비게이션 랜드마크로 인식되고,
+`aria-label`은 스크린 리더에 "페이지 이동" 컨텍스트를 제공합니다.
+
+#### 5. 텍스트 콘텐츠: `<p>` + `<span>`
+
+```tsx
+// before
+<div className="text-center text-muted-foreground">데이터가 없습니다</div>
+
+// after
+<p className="text-center text-muted-foreground">데이터가 없습니다</p>
+```
+
+텍스트 블록은 `<p>`, 인라인 요소는 `<span>`으로 구분하면
+문서 구조가 명확해지고 스타일 적용 의도도 분명해집니다.
+
+이렇게 시맨틱 태그를 적용한 결과,
+화면 렌더링은 동일하지만 접근성 도구와 검색 엔진이 페이지 구조를 더 정확하게 파악할 수 있게 되었습니다.
