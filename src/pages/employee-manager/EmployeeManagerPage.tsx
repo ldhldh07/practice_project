@@ -1,7 +1,7 @@
 import { Card } from "@/shared/ui";
 import { EmployeeBodyWidget, EmployeeDialogsWidget, EmployeeHeaderWidget } from "@/widgets/employee-manager";
 
-const EmployeeManagerPage = () => {
+export function EmployeeManagerPage() {
   return (
     <Card className="w-full max-w-[1400px] mx-auto">
       <EmployeeHeaderWidget />
@@ -9,6 +9,4 @@ const EmployeeManagerPage = () => {
       <EmployeeDialogsWidget />
     </Card>
   );
-};
-
-export default EmployeeManagerPage;
+}

@@ -5,7 +5,7 @@ import { selectedDepartmentDescendantsAtom } from "@/entities/department";
 import { EmployeesTable, useSelectedEmployee } from "@/entities/employee";
 import { EmployeeFilterContainer } from "@/features/employee-filter";
 import { useEmployeesQuery } from "@/features/employee-load";
-import { ROUTES } from "@/shared/config/routes";
+import { getEmployeeDetailHref } from "@/pages";
 import { Pagination } from "@/shared/ui/pagination";
 
 import { useEmployeeSearchParams } from "../../employee-filter";
@@ -35,7 +35,7 @@ export function EmployeeBrowsePanel() {
         employees={data?.employees ?? []}
         onSelect={(employee) => {
           setSelectedEmployee(employee);
-          navigate(ROUTES.employeeDetail(employee.id));
+          navigate(getEmployeeDetailHref(employee.id));
         }}
       />
       <Pagination

@@ -67,7 +67,7 @@ export default tseslint.config(
         {
           default: "disallow",
           rules: [
-            { from: "app", allow: ["pages", "widgets", "features", "entities", "shared"] },
+            { from: "app", allow: ["app", "pages", "widgets", "features", "entities", "shared"] },
             { from: "pages", allow: ["widgets", "features", "entities", "shared"] },
             { from: "widgets", allow: ["features", "entities", "shared"] },
             { from: "features", allow: ["features", "entities", "shared"] },

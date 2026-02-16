@@ -1,9 +1,12 @@
 import { Building2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
-import { ROUTES } from "@/shared/config/routes";
+import type { ReactNode } from "react";
 
-export function Header() {
+type HeaderProps = {
+  navigation: ReactNode;
+};
+
+export function Header({ navigation }: Readonly<HeaderProps>) {
   return (
     <header className="bg-blue-600 text-white p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
@@ -11,15 +14,7 @@ export function Header() {
           <Building2 className="w-6 h-6" />
           <h1 className="text-xl font-bold">HR 인사 관리 시스템</h1>
         </div>
-        <nav>
-          <ul className="flex space-x-4">
-            <li>
-              <Link to={ROUTES.EMPLOYEE_MANAGER} className="hover:underline">
-                직원 관리
-              </Link>
-            </li>
-          </ul>
-        </nav>
+        <nav>{navigation}</nav>
       </div>
     </header>
   );
