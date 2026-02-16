@@ -159,7 +159,7 @@ export function EmployeeEditDialogContainer() {
 }
 ```
 
-추후 기술 변경할 때나 동작이 바뀔 때 하위 레이어인 entitiy에서 수정하기만 하면 되도록 추상화
+추후 기술 변경할 때나 동작이 바뀔 때 하위 레이어인 entity에서 수정하기만 하면 되도록 추상화
 
 ### 3. 단방향 의존성과 추상화 레이어
 
@@ -193,85 +193,67 @@ export function EmployeeBodyWidget() {
 
 비즈니스 로직을 Custom Hook으로 추상화할 때, 이름보다 중요한 것은 "범위를 어디까지 둘지"에 대한 기준이었습니다.
 
-이번 프로젝트에서는 아래 4가지 질문으로 훅 범위를 결정했습니다.
+가장 크게 범위를 잡자면 하나의 컴포넌트에 있는 모든 동작을 하나의 커스텀 훅으로 묶을 수 있습니다.
 
-1. **한 사용자 동작을 끝까지 책임지는가?**
-   - 예: 다이얼로그 열림 상태, 폼, 제출 후 닫기까지 한 흐름이면 하나의 훅으로 묶습니다.
-2. **독립적인 관심사가 섞였는가?**
-   - 재사용 가능성이 다른 관심사(fetch, URL 동기화, 로컬 상태)는 분리합니다.
-3. **라우팅/URL 책임을 침범하는가?**
-   - URL 파라미터 해석이나 라우트 결정은 page에서 소유하고, feature에는 값/콜백으로 주입합니다.
-4. **추상화의 실익이 있는가?**
+가장 작게 범위를 잡자면 모든 비즈니스 로직을 파편화하여 개별로 호출합니다.
+
+그 중간의 범위를 잡기 위해 아래의 기준으로 커스텀 훅 범위를 설정했습니다.
+
+1. 유저 시나리오 관점에서 함께 움직이는가?
+   - 유저 입장에서 하나의 시나리오라면 우선 함께 묶습니다.
+2. 독립적인 관심사가 섞였는가?
+   - 각 훅이 서로에게 의존성이 없고 독립적으로 재사용될 수 있으면 분리합니다.
+3. 추상화의 실익이 있는가?
    - 파일만 분리하는 추출이 아니라, 구현을 숨겨 변경 비용을 낮추는 추상화인지 확인합니다.
 
-#### 유저 시나리오 단위 오케스트레이션
+이번 프로젝트에서는 실제로 훅을 만들 때 아래 질문을 반복했습니다.
 
-사용자 관점에서 하나의 완결된 흐름을 담당하는 훅을 만듭니다.
-
-```ts
-// features/employee-edit/model/edit-employee.hook.ts
-export function useAddEmployeeDialogFlow() {
-  const [isOpen, setIsOpen] = useAddEmployeeDialog();
-  const form = useCreateEmployeeForm();
-  const createMutation = useCreateEmployeeMutation();
-
-  const handleSubmit = async (data) => {
-    await createMutation.mutateAsync(data);
-    setIsOpen(false);
-  };
-
-  return { isOpen, setIsOpen, form, handleSubmit };
-}
-
-export function useEditEmployeeDialogFlow() {
-  const [isOpen, setIsOpen] = useEditEmployeeDialog();
-  const [selectedEmployee] = useSelectedEmployee();
-  const form = useUpdateEmployeeForm(selectedEmployee);
-  const updateMutation = useUpdateEmployeeMutation();
-
-  const handleSubmit = async (data) => {
-    if (!selectedEmployee) return;
-    await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
-    setIsOpen(false);
-  };
-
-  return { isOpen, setIsOpen, form, handleSubmit, selectedEmployee };
-}
-```
-
-직원 추가와 직원 수정은 독립적인 시나리오이므로 하나의 훅으로 억지로 묶지 않습니다. 각각의 흐름이 명확하게 분리되어 있어 유지보수가 쉽습니다.
+1. 이 훅이 "하나의 사용자 동작"을 끝까지 책임지는가?
+2. 라우팅 책임까지 끌고 들어와서 경계를 흐리지는 않는가?
+3. 구현체를 바꿨을 때 사용처 수정 범위를 줄여주는가?
 
 #### 관심사 독립성에 따른 분리
 
 하나의 시나리오 안에서도 재사용 가능성과 변경 주기가 다른 관심사는 분리합니다.
 
-```typescript
-// before
-export function useDepartmentTree() {
-  // fetch + url sync + tree state가 한곳에 섞여있던 형태
-  // ...
-}
-```
-
 ```ts
-// after - 서브훅으로 관심사 분리
+// src/features/department-tree/model/use-department-tree.ts
 function useDepartmentTreeSourceSync() {
-  const query = useQuery({ queryKey: departmentQueryKeys.list(), queryFn: () => departmentApi.getList() });
-  // source atom hydration
+  const setDepartmentSource = useSetAtom(departmentSourceAtom);
+
+  const query = useQuery({
+    queryKey: departmentQueryKeys.list(),
+    queryFn: () => departmentApi.getList(),
+  });
+
+  useEffect(() => {
+    if (!query.data) return;
+    setDepartmentSource(query.data);
+  }, [query.data, setDepartmentSource]);
 }
 
 function useDepartmentTreeUrlSync(departmentId: number | undefined, setSelectedId: (id: number | null) => void) {
-  // URL param -> selected atom sync
+  useEffect(() => {
+    if (!departmentId) return;
+    setSelectedId(departmentId);
+  }, [departmentId, setSelectedId]);
 }
 
 function useDepartmentTreeState() {
-  // tree/search/selection/expand state
+  const tree = useAtomValue(visibleDepartmentTreeAtom);
+  const [search, setSearch] = useAtom(departmentTreeSearchAtom);
+  const [selectedId, setSelectedId] = useAtom(selectedDepartmentIdAtom);
+  const [expandedIds] = useAtom(expandedDepartmentIdsAtom);
+  const toggleExpand = useSetAtom(toggleDepartmentExpandAtom);
+
+  return { tree, search, setSearch, selectedId, setSelectedId, expandedIds, toggleExpand };
 }
 
 export function useDepartmentTree() {
-  // orchestration만 담당
-  useDepartmentTreeSourceSync();
+  const { params } = useEmployeeSearchParams();
   const state = useDepartmentTreeState();
+
+  useDepartmentTreeSourceSync();
   useDepartmentTreeUrlSync(params.departmentId, state.setSelectedId);
 
   return state;
@@ -280,17 +262,34 @@ export function useDepartmentTree() {
 
 이렇게 분리하면:
 
-- 각 서브훅은 독립적으로 테스트 가능합니다
-- 데이터 fetch, URL 동기화, 상태 관리 등 각 관심사가 명확히 분리됩니다
-- 오케스트레이터 훅은 이들을 조합하는 역할만 담당합니다
+- 데이터 fetch, URL 동기화, UI 상태 바인딩의 수정 포인트가 분리됩니다.
+- 훅 내부 테스트 경계를 관심사 단위로 나누기 쉬워집니다.
+- 상위 컨테이너는 `useDepartmentTree()`만 호출해도 전체 시나리오를 사용할 수 있습니다.
+
+#### 유저 시나리오 단위 오케스트레이션
+
+시나리오 관점에서 함께 움직이는 상태/액션은 훅 하나로 묶고,
+그 훅이 "사용자 동작의 시작부터 종료까지"를 책임지도록 두는 방식을 선호했습니다.
+
+예를 들어 직원 편집 시나리오에서는,
+
+- 다이얼로그 상태
+- 현재 선택된 직원
+- submit 후 invalidate
+
+가 한 덩어리로 움직입니다.
+
+그래서 컨테이너는 세부 구현보다 시나리오 호출만 유지하고,
+실제 구현 변경은 feature/model 내부에서 해결하는 방향으로 가져갔습니다.
 
 #### URL/라우팅 책임의 분리
 
 URL과 라우팅은 page의 책임으로 두고, feature는 라우트 구현을 직접 알지 않게 구성했습니다.
 
 ```tsx
-// pages/employee-manager/EmployeeManagerPage.tsx
+// src/pages/employee-manager/EmployeeManagerPage.tsx
 import { getEmployeeDetailHref } from "@/shared/config/routes";
+import { EmployeeBodyWidget } from "@/widgets/employee-manager";
 
 export function EmployeeManagerPage() {
   return <EmployeeBodyWidget toEmployeeDetailHref={getEmployeeDetailHref} />;
@@ -298,84 +297,36 @@ export function EmployeeManagerPage() {
 ```
 
 ```tsx
-// features/employee-browse/model/use-employee-browse.ts
+// src/features/employee-browse/model/use-employee-browse.ts
 type UseEmployeeBrowseParams = {
   toDetailHref: (employeeId: number) => string;
 };
 
 export function useEmployeeBrowse({ toDetailHref }: Readonly<UseEmployeeBrowseParams>) {
-  // feature는 href 생성 규칙을 모르고 주입받아 사용
+  const navigate = useNavigate();
+
+  const onSelect = (employee: Employee) => {
+    navigate(toDetailHref(employee.id));
+  };
+
+  return { onSelect };
 }
 ```
 
 이렇게 하면 route 구조가 바뀌어도 page/route 계층에서만 수정하면 되고, feature의 재사용성과 독립성을 유지할 수 있습니다.
-
-#### 패스스루 훅 안티패턴
-
-entity 훅을 그대로 return만 하는 feature 훅은 시나리오 의미가 없으므로 제거 대상입니다.
-
-```ts
-// ❌ 잘못된 예시 - 패스스루 훅
-export function useOpenAddEmployeeDialog() {
-  return useSetAddEmployeeDialog(); // entity 훅을 그대로 return
-}
-
-export function useDeleteEmployeeAction() {
-  const { mutateAsync } = useDeleteEmployee();
-  return { deleteEmployee: mutateAsync }; // mutateAsync만 return
-}
-```
-
-이런 훅들은 다음과 같은 문제가 있습니다:
-
-- entity 훅 대비 추가적인 오케스트레이션이나 정책을 제공하지 않습니다
-- 단순히 이름만 바꾸는 역할만 하여 불필요한 레이어를 추가합니다
-- 실제 사용처가 없거나 매우 적습니다
-
-**판단 기준**: "이 훅이 entity 훅 대비 추가적인 오케스트레이션이나 정책을 제공하는가?"
-
-```ts
-// ✅ 올바른 예시 - 시나리오 오케스트레이션
-export function useAddEmployeeDialogFlow() {
-  const [isOpen, setIsOpen] = useAddEmployeeDialog();
-  const form = useCreateEmployeeForm();
-  const createMutation = useCreateEmployeeMutation();
-
-  // 폼 제출 + 다이얼로그 닫기 + 에러 처리 등 시나리오 전체를 오케스트레이션
-  const handleSubmit = async (data) => {
-    await createMutation.mutateAsync(data);
-    setIsOpen(false);
-  };
-
-  return { isOpen, setIsOpen, form, handleSubmit };
-}
-```
-
-이 훅은 다이얼로그 상태, 폼, 액션을 조합하여 "직원 추가 다이얼로그"라는 완결된 시나리오를 제공합니다.
 
 #### 추출과 추상화의 차이
 
 - **추출**: 코드를 파일로 옮기는 것
 - **추상화**: 사용처에서 구현 세부사항을 몰라도 되게 만드는 것
 
-커스텀 훅은 "파일 수를 늘리는 목적"이 아니라, 구현체 변경 시 사용처를 덜 바꾸기 위한 목적일 때만 유지합니다.
+커스텀 훅은 구현체 변경 시 사용처를 덜 바꾸기 위한 목적일 때만 유지합니다.
 
 #### 정리
 
-- **유저 시나리오 기반으로 묶되**, 독립적인 시나리오는 억지로 하나로 합치지 않습니다
-- **관심사가 독립적이면 서브훅으로 분리**하여 오케스트레이터 훅이 조합하도록 합니다
-- **URL/라우팅 책임은 page에서 소유**하고 feature에는 값/콜백으로 전달합니다
-- **패스스루 훅은 제거**하고, entity 훅을 직접 사용하거나 실제 오케스트레이션을 제공하는 훅으로 대체합니다
-
-#### 참고한 기준
-
-커스텀 훅 범위 기준은 다음 레퍼런스에서 공통으로 확인한 원칙을 반영했습니다.
-
-- `weather`: 과도한 통합 훅 대신 관심사 분리
-- `exchange_practice`: 컨테이너는 What, 훅은 How
-- `op_practice`: feature 훅의 시나리오 오케스트레이션
-- `tb_practice`: URL/page 소유권, 추출 vs 추상화 기준
-- `vineyard_backoffice`: 문서화 체크리스트 기반 검증 관점
+- **유저 시나리오 기반으로 묶되**, 독립적인 시나리오는 억지로 하나로 합치지 않습니다.
+- **관심사가 독립적이면 서브훅으로 분리**하여 오케스트레이터 훅이 조합하도록 합니다.
+- **URL/라우팅 책임은 page에서 소유**하고 feature에는 값/콜백으로 전달합니다.
 
 ### 5. UI 분리의 기준
 
@@ -398,7 +349,7 @@ function EmployeesTable({ employees, onSelect }) {
 }
 ```
 
-1. 단순히 자주 쓸 것 같은 컴포넌트라고 분리
+1. 단순히 자주 쓸 것 같은 컴포넌트라고 분리하지 않습니다.
    - 다양한 데이터, 인터페이스에 맞추기 위해 컴포넌트가 많은 분기로 복잡도가 높아진다.
 
 2. 컴포넌트를 공통으로 사용(shared)하는 것은 엄격하게 해야한다
@@ -420,38 +371,43 @@ function EmployeesTable({ employees, onSelect }) {
 
 #### jotai
 
-- Flux 패턴을 사용하는 상태 관리 툴
-  - Store라는 별도의 중앙집중식 레이어가 필요
-  - 모든 상태가 하나의 store에 집중됨
-- jotai
-- Atomic 단위로 상태를 관리 - 관심사 분리 관점에서 entities 레이어에 일관성있게 적용
-- useState와 동일한 형식으로 상태 관리
-- 변경된 atom만 정확히 업데이트
+기본적으로는 중앙 store에 모든 상태를 밀어 넣기보다, 상태를 쪼개서 관심사 단위로 다루는 쪽이 컴포넌트 중심의 관심사 분리라는 방향성과 잘 맞았습니다.
 
-복잡한 데이터 관리 흐름에서 특히 조타이 위주로 가져가는 이유는,
+- `useState`와 유사한 사용성으로 컨테이너 코드 흐름을 유지하기 쉽고
+- atom 단위 구독으로 필요한 상태만 반응시키기 쉽습니다.
+
+복잡한 데이터 관리 흐름에서 특히 Jotai 위주로 가져간 이유는,
 
 - 화면 단위가 아니라 상태 단위(atom)로 책임을 쪼갤 수 있고
 - 각 컴포넌트가 필요한 atom만 읽고/쓰도록 만들기 쉽기 때문입니다.
 
-즉, "전역 상태를 한 덩어리로 관리"하기보다는 "컴포넌트 관심사에 맞춰 상태를 원자화"해서,
+즉, "전역 상태를 한 덩어리로 관리"하기보다 "컴포넌트 관심사에 맞춰 상태를 원자화"해서,
 조직도 선택/검색/펼침 같은 서로 다른 관심사를 features와 entities 경계 안에서 분리하기 좋았습니다.
 
 ```ts
-// entities/department/model/department-tree.atom.ts
-export const departmentSourceAtom = atom<Department[]>([]);
-export const selectedDepartmentIdAtom = atom<number | null>(null);
-export const departmentTreeSearchAtom = atom("");
+// src/entities/department/model/department-tree.atom.ts
+export const departmentSourceAtom = atom<Department[]>([]); // source
+export const selectedDepartmentIdAtom = atom<number | null>(null); // source
+export const expandedDepartmentIdsAtom = atom<Set<number>>(new Set<number>()); // source
+export const departmentTreeSearchAtom = atom(""); // source
 
-// 파생 atom
 export const visibleDepartmentTreeAtom = atom((get) => {
+  // derived
   const tree = get(departmentTreeAtom);
   const keyword = get(departmentTreeSearchAtom).trim().toLowerCase();
-  // ...
-  return tree;
+  if (!keyword) return tree;
+
+  const filterTree = (nodes: typeof tree): typeof tree => {
+    return nodes
+      .map((node) => ({ ...node, children: filterTree(node.children) }))
+      .filter((node) => node.name.toLowerCase().includes(keyword) || node.children.length > 0);
+  };
+
+  return filterTree(tree);
 });
 
-// 액션 atom
 export const toggleDepartmentExpandAtom = atom(null, (get, set, id: number) => {
+  // action
   const next = new Set(get(expandedDepartmentIdsAtom));
   if (next.has(id)) next.delete(id);
   else next.add(id);
@@ -460,31 +416,109 @@ export const toggleDepartmentExpandAtom = atom(null, (get, set, id: number) => {
 ```
 
 ```ts
-// features/department-tree/model/use-department-tree.ts
+// src/features/department-tree/model/use-department-tree.ts
 // source sync / url sync / state binding을 분리해서 조합
 useDepartmentTreeSourceSync();
+const state = useDepartmentTreeState();
 useDepartmentTreeUrlSync(params.departmentId, state.setSelectedId);
+```
+
+또한 읽기/쓰기 분리를 통해 불필요한 구독을 줄이는 기준도 유지했습니다.
+
+```ts
+const tree = useAtomValue(visibleDepartmentTreeAtom); // read
+const toggleExpand = useSetAtom(toggleDepartmentExpandAtom); // write
 ```
 
 #### tanstack query
 
-- 기존 명령형 방식
-  - 서버 상태를 클라이언트에 수동으로 저장하고 관리
+서버 상태는 결국 "최신성 + 캐시 + 무효화"의 문제라서, 별도 수동 store를 키우기보다 Query 레이어에서 일관되게 관리하는 쪽이 안정적이었습니다.
 
-  - 상태 동기화를 직접 처리해야 함
+- 상태를 직접 조작하기보다 query key와 옵션을 선언
+- invalidate 기준을 mutation 결과에 맞춰 설정
+- stale/gc를 도메인 특성으로 조정
 
-  - 선언적인 다른 상태 관리와 호환되지 않음
+추가적으로 복잡한 흐름에서 상태 위치를 섞지 않기 위해 아래 기준을 같이 적용했습니다.
 
-- tanstack query
-  - 상태를 직접 조작하지 않음
+| 상태 종류      | 소유 레이어       | 이유                                              |
+| -------------- | ----------------- | ------------------------------------------------- |
+| 서버 상태      | entity query hook | 캐싱/최신성/무효화 정책을 데이터 경계에 두기 위해 |
+| 도메인 상태    | entity atom model | 페이지를 넘어 공유되는 선택값/초안 상태이기 때문  |
+| 라우트 뷰 상태 | page + URL params | 히스토리/새로고침/공유 링크의 기준이 URL이기 때문 |
 
-  - 데이터 변화를 선언하면 UI가 자동으로 반응
+```ts
+// src/features/employee-load/model/employee-load.query.ts
+export const buildEmployeesQuery = (params: EmployeesParams) =>
+  queryOptions({
+    queryKey: employeeQueryKeys.list(params),
+    queryFn: () => employeeApi.getList(params),
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+```
 
-  - 선언적 데이터 동기화 - invalidateQueries로 자동 업데이트
+```ts
+// src/features/employee-load/model/employees.query.ts
+export function useEmployeesQuery(params: EmployeesParams) {
+  return useQuery(buildEmployeesQuery(params));
+}
+```
+
+```ts
+// src/features/employee-edit/model/employee.mutation.ts
+await queryClient.invalidateQueries({ queryKey: employeeQueryKeys.all });
+```
+
+이렇게 나누면 "복잡하니까 상태관리 도구를 하나 더 추가"하는 방향보다,
+현재 도구 안에서 책임을 분리하는 쪽이 유지보수성이 더 좋았습니다.
+
+또한 쿼리 재시도는 일괄 숫자 설정보다 에러 성격으로 판단하는 게 더 안전했습니다.
+
+- 네트워크/일시적 서버 오류: 제한적 재시도
+- 검증 실패/도메인 규칙 위반/인증 오류: 재시도하지 않음
+
+이 프로젝트에서는 query마다 `retry`를 과하게 커스텀하기보다, 우선 실패를 타입화해서 경계에서 처리하고 필요한 경우에만 정책을 분기하도록 가져갔습니다.
+
+#### URL 파라미터 소유권 기준
+
+페이지에 종속되는 뷰 상태는 URL에 두고, 도메인 상태는 atom에 두는 기준도 함께 유지했습니다.
+
+```ts
+// src/features/employee-filter/model/employee-search-params.ts
+export function useEmployeeSearchParams() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const params: EmployeeSearchParams = {
+    limit: Number(searchParams.get("limit") || DEFAULTS.limit),
+    skip: Number(searchParams.get("skip") || DEFAULTS.skip),
+    search: searchParams.get("search") || undefined,
+    departmentId: searchParams.get("departmentId") ? Number(searchParams.get("departmentId")) : undefined,
+    status: searchParams.get("status") || undefined,
+    sortBy: (searchParams.get("sortBy") as EmployeeSortBy | null) || DEFAULTS.sortBy,
+    order: (searchParams.get("order") as SortOrder | null) || DEFAULTS.order,
+  };
+
+  const setParams = (next: Partial<EmployeeSearchParams>) => {
+    const merged = { ...params, ...next };
+    const query = new URLSearchParams();
+    Object.entries(merged).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === "") return;
+      query.set(key, String(value));
+    });
+    setSearchParams(query);
+  };
+
+  return { params, setParams };
+}
+```
+
+이 방식은 뒤로가기/앞으로가기, 새로고침, URL 공유까지 자연스럽게 가져갈 수 있어서
+필터/정렬 같은 route-scoped 상태에는 특히 유리했습니다.
 
 ### 2. 런타임 API 검증
 
-```typescript
+```ts
+// src/entities/employee/model/employee.schema.ts
 export const employeeSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -495,13 +529,153 @@ export const employeeSchema = z.object({
   hireDate: z.string(),
   status: z.enum(["active", "onLeave", "resigned"]),
 });
-
-export type EmployeeSchema = z.infer<typeof employeeSchema>;
 ```
 
 신뢰할 수 없는 외부 영역의 정보를 신뢰할 수 있는 애플리케이션 내부로 들여보내기 위해서는 검증이 필요합니다.
 
-API 응답 또한 신뢰할 수 없는 영역의 정보로 검증을 해야한다
+API 응답 또한 신뢰할 수 없는 영역의 정보이므로 경계에서 검증해야 합니다.
 
-- **타입으로 인한 검증** : 컴파일 타임 검증만 제공하여 런타임에 예측불가능한 오류 발생 가능
-- **zod** : 런타임 검증, 백엔드에서 다른 스펙으로 보낼 때 감지 가능
+- **타입 기반 검증**: 컴파일 타임 검증만 제공하므로 런타임 입력 자체를 막지는 못합니다.
+- **Zod 검증**: 런타임에서 실제 payload 형태를 검증하고 스펙 이탈을 즉시 감지할 수 있습니다.
+
+여기서 중요한 건 검증을 "한 번만" 하는 게 아니라,
+신뢰 경계에서 일관되게 처리하는 방식입니다.
+
+```ts
+// src/shared/lib/validate.ts
+export const validateSchema = <T extends z.ZodTypeAny>(schema: T, data: unknown, errorMessage: string): z.infer<T> => {
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    throw new ValidationError(errorMessage, result.error.issues);
+  }
+
+  return result.data;
+};
+```
+
+```ts
+// src/entities/employee/api/employee.api.ts
+async getList(params: EmployeesParams): Promise<EmployeesResponse> {
+  const data = await http.get("/employees", { params });
+  return validateSchema(employeesResponseSchema, data, "직원 목록 응답 검증 실패");
+}
+```
+
+즉, 외부 응답은 `safeParse`로 검증하고,
+실패 시에는 zod 에러를 그대로 UI로 올리지 않고 앱에서 다루는 에러 타입으로 변환해서 전달합니다.
+
+이렇게 해두면 UI는 "어떤 문구를 보여줄지"에 집중할 수 있고,
+검증/분류 로직은 데이터 레이어에 모여서 수정 포인트가 줄어듭니다.
+
+추가로, 검증 실패를 다루는 위치를 고정해두면 동일한 API를 여러 화면에서 쓰더라도
+실패 기준이 흔들리지 않습니다.
+
+- API layer: `validateSchema` 호출
+- shared validation: `safeParse` + `ValidationError`
+- UI layer: 에러 표현만 담당
+
+## 추가 고민
+
+### 1. 복잡한 상태를 단순하게 유지하는 방법
+
+조직도/직원/근태처럼 상태가 늘어나는 화면에서는,
+처음에는 "한 군데로 다 모아서 관리하면 편하지 않을까"라는 생각을 하게 됩니다.
+
+하지만 실제로는 중앙 store를 키우기보다 책임을 먼저 분해하는 편이 안정적이었습니다.
+
+1. entity는 상태 primitive(source/derived/action atom)를 소유
+2. feature는 시나리오 오케스트레이션만 담당
+3. page는 URL/라우팅 맥락만 소유
+
+이 기준을 지키면 상태가 많아져도 수정 범위가 예측 가능해졌습니다.
+
+특히 "한 화면에서 여러 종류의 상태를 다루는" 상황에서 아래처럼 owner를 분리해 두면,
+요구사항이 바뀌었을 때 어디를 고쳐야 하는지가 선명해집니다.
+
+| 상태 종류      | 소유자                       | 실제 코드                                          |
+| -------------- | ---------------------------- | -------------------------------------------------- |
+| 서버 상태      | Query Hook                   | `useEmployeesQuery`                                |
+| 도메인 상태    | Atom Model                   | `departmentSourceAtom`, `selectedDepartmentIdAtom` |
+| 라우트 뷰 상태 | URL Params + Page/Feature DI | `useEmployeeSearchParams`, `toDetailHref` 주입     |
+
+### 2. Jotai 원자성(atomic) 활용 기준
+
+원자성의 장점은 "상태를 잘게 나눈다" 자체보다,
+필요한 atom만 구독해서 리렌더 범위를 줄일 수 있다는 점입니다.
+
+- source atom: 원본 데이터
+- derived atom: 파생 규칙 계산
+- action atom: cascade 업데이트
+
+```ts
+// src/entities/department/model/department-tree.atom.ts
+export const departmentSourceAtom = atom<Department[]>([]); // source
+export const departmentTreeAtom = atom((get) => buildDepartmentTree(get(departmentSourceAtom))); // derived
+export const selectedDepartmentDescendantsAtom = atom((get) => {
+  const selectedId = get(selectedDepartmentIdAtom);
+  if (!selectedId) return [] as number[];
+  return findDescendantDepartmentIds(get(departmentTreeAtom), selectedId);
+});
+```
+
+특히 읽기/쓰기 분리(`useAtomValue`, `useSetAtom`)를 적용하면,
+setter만 필요한 곳에서 불필요한 구독을 줄일 수 있어 체감 성능이 좋아졌습니다.
+
+### 3. 에러 관리 기준
+
+에러 처리는 "어디서 분류하고 어디서 보여줄지"를 고정하는 게 핵심이었습니다.
+
+- 데이터 레이어: 에러 분류/코드 매핑/재시도 정책 판단
+- UI 레이어: 에러 상태 표현(문구, fallback, 버튼)
+
+이 프로젝트에서는 다음 분류를 기본으로 두고 처리했습니다.
+
+- transport/network
+- API/protocol
+- validation/parse
+- domain rule
+
+```ts
+// src/shared/lib/errors/error-codes.ts
+export const ERROR_CODES = {
+  BAD_REQUEST: "BAD_REQUEST",
+  NOT_FOUND: "NOT_FOUND",
+  UNAUTHORIZED: "UNAUTHORIZED",
+  INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  RESPONSE_PARSE_ERROR: "RESPONSE_PARSE_ERROR",
+  NETWORK_ERROR: "NETWORK_ERROR",
+  TIMEOUT: "TIMEOUT",
+} as const;
+```
+
+```ts
+// src/shared/lib/errors/errors.ts
+export class ApiError extends BaseError {
+  readonly statusCode?: number;
+  readonly data?: unknown;
+}
+
+export class ValidationError extends Error {
+  readonly issues: ZodIssue[];
+}
+
+export const AppError = {
+  isApi: (error: unknown): error is ApiError => error instanceof ApiError,
+  isValidation: (error: unknown): error is ValidationError => error instanceof ValidationError,
+  fromCode: (code: string, message: string, statusCode?: number, data?: unknown): Error => {
+    switch (code) {
+      case ERROR_CODES.BAD_REQUEST:
+        return new BadRequestError(message, data);
+      case ERROR_CODES.NOT_FOUND:
+        return new NotFoundError(message);
+      default:
+        return new ApiError(message, code, statusCode, data);
+    }
+  },
+} as const;
+```
+
+이렇게 분리해두면, 동일한 에러 기준을 여러 화면에서 재사용할 수 있고
+UI 코드에 저수준 에러 분기(`if status === 401`)가 퍼지는 걸 막을 수 있었습니다.
