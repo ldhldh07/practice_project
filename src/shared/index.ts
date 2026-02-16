@@ -18,3 +18,32 @@ export { cn } from "./lib/cn";
 export { splitByHighlight, type HighlightSegment } from "./lib/split-by-highlight";
 export { createModalFormHandler } from "./lib/form-handler";
 export { validateSchema } from "./lib/validate";
+
+// Errors
+export {
+  BaseError,
+  ApiError,
+  NotFoundError,
+  BadRequestError,
+  NetworkError,
+  TimeoutError,
+  ValidationError,
+  ResponseParseError,
+  AppError,
+} from "./lib/errors";
+
+export {
+  API_ERROR_CODES,
+  CLIENT_ERROR_CODES,
+  NETWORK_ERROR_CODES,
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  getErrorMessage,
+  type ApiErrorCode,
+  type ClientErrorCode,
+  type NetworkErrorCode,
+  type ErrorCode,
+} from "./lib/errors";
+
+// Environment
+export { BASE_URL } from "./lib/env";
