@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { createApiValidator } from "@/shared/lib/api-validator";
-
 export const commentUserSchema = z.object({
   id: z.number(),
   username: z.string(),
@@ -22,10 +20,6 @@ export const commentsResponseSchema = z.object({
   skip: z.number().optional(),
   limit: z.number().optional(),
 });
-
-export const commentValidator = createApiValidator(commentSchema);
-export const commentsResponseValidator = createApiValidator(commentsResponseSchema);
-export const commentUserValidator = createApiValidator(commentUserSchema);
 
 export type CommentSchema = z.infer<typeof commentSchema>;
 export type CommentsResponseSchema = z.infer<typeof commentsResponseSchema>;

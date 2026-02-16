@@ -1,25 +1,29 @@
 import type { Comment } from "@/entities/comment/model/comment.types";
 import { http } from "@/shared/api/client";
-import { withValidation } from "@/shared/lib/api-validator";
+import { validateSchema } from "@/shared/lib/validate";
 
-import { commentValidator, commentsResponseValidator } from "../model/comment.schema";
+import { commentSchema, commentsResponseSchema } from "../model/comment.schema";
 
 export const commentApi = {
-  get(postId: number): Promise<GetCommentsByPostIdResponse> {
-    return withValidation(() => http.get(`/comments/post/${postId}`), commentsResponseValidator);
+  async get(postId: number): Promise<GetCommentsByPostIdResponse> {
+    const data = await http.get(`/comments/post/${postId}`);
+    return validateSchema(commentsResponseSchema, data, "댓글 목록 응답 검증 실패");
   },
-  create({ body, postId, userId }: CreateCommentPayload): Promise<Comment> {
-    return withValidation(() => http.post("/comments/add", { body, postId, userId }), commentValidator);
+  async create({ body, postId, userId }: CreateCommentPayload): Promise<Comment> {
+    const data = await http.post("/comments/add", { body, postId, userId });
+    return validateSchema(commentSchema, data, "댓글 생성 응답 검증 실패");
   },
-  update(payload: UpdateCommentPayload): Promise<Comment> {
+  async update(payload: UpdateCommentPayload): Promise<Comment> {
     const { id, body } = payload;
-    return withValidation(() => http.put(`/comments/${id}`, { body }), commentValidator);
+    const data = await http.put(`/comments/${id}`, { body });
+    return validateSchema(commentSchema, data, "댓글 수정 응답 검증 실패");
   },
   remove(id: number): Promise<void> {
     return http.delete(`/comments/${id}`);
   },
-  like({ id, likes }: LikeCommentPayload): Promise<Comment> {
-    return withValidation(() => http.patch(`/comments/${id}`, { likes }), commentValidator);
+  async like({ id, likes }: LikeCommentPayload): Promise<Comment> {
+    const data = await http.patch(`/comments/${id}`, { likes });
+    return validateSchema(commentSchema, data, "댓글 좋아요 응답 검증 실패");
   },
 } as const;
 

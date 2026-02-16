@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { createApiValidator } from "@/shared/lib/api-validator";
-
 export const postSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -29,10 +27,7 @@ export const tagSchema = z.object({
   url: z.string(),
 });
 
-export const postValidator = createApiValidator(postSchema);
-export const postsResponseValidator = createApiValidator(postsResponseSchema);
-export const tagValidator = createApiValidator(tagSchema);
-export const tagsArrayValidator = createApiValidator(z.array(tagSchema));
+export const tagsArraySchema = z.array(tagSchema);
 
 export type PostSchema = z.infer<typeof postSchema>;
 export type PostsResponseSchema = z.infer<typeof postsResponseSchema>;

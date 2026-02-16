@@ -1,20 +1,23 @@
 import { http } from "@/shared/api/client";
-import { withValidation } from "@/shared/lib/api-validator";
+import { validateSchema } from "@/shared/lib/validate";
 
-import { postValidator, postsResponseValidator, tagsArrayValidator } from "../model/post.schema";
+import { postSchema, postsResponseSchema, tagsArraySchema } from "../model/post.schema";
 import { Post } from "../model/post.types";
 
 import type { Tag } from "../model/post.types";
 
 export const postApi = {
-  get({ limit, skip, sortBy, order }: PostsParams): Promise<PostsResponse> {
-    return withValidation(() => http.get("/posts", { params: { limit, skip, sortBy, order } }), postsResponseValidator);
+  async get({ limit, skip, sortBy, order }: PostsParams): Promise<PostsResponse> {
+    const data = await http.get("/posts", { params: { limit, skip, sortBy, order } });
+    return validateSchema(postsResponseSchema, data, "게시글 목록 응답 검증 실패");
   },
-  create(payload: CreatePostParams): Promise<Post> {
-    return withValidation(() => http.post("/posts/add", payload), postValidator);
+  async create(payload: CreatePostParams): Promise<Post> {
+    const data = await http.post("/posts/add", payload);
+    return validateSchema(postSchema, data, "게시글 생성 응답 검증 실패");
   },
-  update({ postId, params }: UpdatePostPayload): Promise<Post> {
-    return withValidation(() => http.put(`/posts/${postId}`, params), postValidator);
+  async update({ postId, params }: UpdatePostPayload): Promise<Post> {
+    const data = await http.put(`/posts/${postId}`, params);
+    return validateSchema(postSchema, data, "게시글 수정 응답 검증 실패");
   },
   remove(id: number): Promise<void> {
     return http.delete(`/posts/${id}`);
@@ -23,16 +26,19 @@ export const postApi = {
     tag: string,
     params?: Pick<PostsParams, "limit" | "skip" | "sortBy" | "order">,
   ): Promise<PostsResponse> {
-    return withValidation(() => http.get(`/posts/tag/${tag}`, { params }), postsResponseValidator);
+    const data = await http.get(`/posts/tag/${tag}`, { params });
+    return validateSchema(postsResponseSchema, data, "태그별 게시글 응답 검증 실패");
   },
   async search(
     query: string,
     params?: Pick<PostsParams, "limit" | "skip" | "sortBy" | "order">,
   ): Promise<PostsResponse> {
-    return withValidation(() => http.get(`/posts/search`, { params: { q: query, ...params } }), postsResponseValidator);
+    const data = await http.get(`/posts/search`, { params: { q: query, ...params } });
+    return validateSchema(postsResponseSchema, data, "게시글 검색 응답 검증 실패");
   },
   async getTags(): Promise<Tag[]> {
-    return withValidation(() => http.get(`/posts/tags`), tagsArrayValidator);
+    const data = await http.get(`/posts/tags`);
+    return validateSchema(tagsArraySchema, data, "태그 목록 응답 검증 실패");
   },
 } as const;
 

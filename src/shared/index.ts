@@ -12,4 +12,4 @@ export { createHttpClient, type HttpClient } from "./api/client";
 
 export { splitByHighlight, type HighlightSegment } from "./lib/split-by-highlight";
 export { createModalFormHandler } from "./lib/form-handler";
-export { createApiValidator, withValidation } from "./lib/api-validator";
+export { validateSchema } from "./lib/validate";
