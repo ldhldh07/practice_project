@@ -1,6 +1,13 @@
 import { useAtom } from "jotai";
 
-import { useAddAttendanceDialog, useEditAttendanceDialog, useSelectedAttendance } from "@/entities/attendance";
+import {
+  useAddAttendanceDialog,
+  useCreateAttendanceForm,
+  useEditAttendanceDialog,
+  useSelectedAttendance,
+  useUpdateAttendanceForm,
+} from "@/entities/attendance";
+import { createModalFormHandler } from "@/shared";
 
 import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "./attendance.mutation";
 import { attendanceDialogModeAtom } from "./edit-attendance.atoms";
@@ -9,20 +16,47 @@ export function useAttendanceDialogMode() {
   return useAtom(attendanceDialogModeAtom);
 }
 
-export function useAttendanceDialogState() {
+export function useAttendanceAddDialogScenario(employeeId: number) {
   const [isAddOpen, setIsAddOpen] = useAddAttendanceDialog();
-  const [isEditOpen, setIsEditOpen] = useEditAttendanceDialog();
-  return { isAddOpen, setIsAddOpen, isEditOpen, setIsEditOpen };
-}
-
-export function useAttendanceActions(employeeId: number) {
+  const form = useCreateAttendanceForm();
   const createMutation = useCreateAttendanceMutation(employeeId);
-  const updateMutation = useUpdateAttendanceMutation(employeeId);
-  const [selectedAttendance] = useSelectedAttendance();
+
+  const handleSubmit = createModalFormHandler(
+    form,
+    () => setIsAddOpen(false),
+    true,
+  )(async (data) => {
+    await createMutation.mutateAsync(data);
+  });
 
   return {
+    isAddOpen,
+    setIsAddOpen,
+    form,
+    handleSubmit,
+  };
+}
+
+export function useAttendanceEditDialogScenario(employeeId: number) {
+  const [isEditOpen, setIsEditOpen] = useEditAttendanceDialog();
+  const [selectedAttendance] = useSelectedAttendance();
+  const form = useUpdateAttendanceForm(selectedAttendance);
+  const updateMutation = useUpdateAttendanceMutation(employeeId);
+
+  const handleSubmit = createModalFormHandler(
+    form,
+    () => setIsEditOpen(false),
+    false,
+  )(async (data) => {
+    if (!selectedAttendance) return;
+    await updateMutation.mutateAsync({ attendanceId: selectedAttendance.id, payload: data });
+  });
+
+  return {
+    isEditOpen,
+    setIsEditOpen,
+    form,
     selectedAttendance,
-    create: createMutation.mutateAsync,
-    update: (payload: Parameters<typeof updateMutation.mutateAsync>[0]) => updateMutation.mutateAsync(payload),
+    handleSubmit,
   };
 }

@@ -14,14 +14,8 @@ import {
 } from "@/entities/department";
 import { useEmployeeSearchParams } from "@/features/employee-filter";
 
-export function useDepartmentTree() {
-  const { params } = useEmployeeSearchParams();
+function useDepartmentTreeSourceSync() {
   const setDepartmentSource = useSetAtom(departmentSourceAtom);
-  const tree = useAtomValue(visibleDepartmentTreeAtom);
-  const [search, setSearch] = useAtom(departmentTreeSearchAtom);
-  const [selectedId, setSelectedId] = useAtom(selectedDepartmentIdAtom);
-  const [expandedIds] = useAtom(expandedDepartmentIdsAtom);
-  const toggleExpand = useSetAtom(toggleDepartmentExpandAtom);
 
   const query = useQuery({
     queryKey: departmentQueryKeys.list(),
@@ -32,11 +26,21 @@ export function useDepartmentTree() {
     if (!query.data) return;
     setDepartmentSource(query.data);
   }, [query.data, setDepartmentSource]);
+}
 
+function useDepartmentTreeUrlSync(departmentId: number | undefined, setSelectedId: (id: number | null) => void) {
   useEffect(() => {
-    if (!params.departmentId) return;
-    setSelectedId(params.departmentId);
-  }, [params.departmentId, setSelectedId]);
+    if (!departmentId) return;
+    setSelectedId(departmentId);
+  }, [departmentId, setSelectedId]);
+}
+
+function useDepartmentTreeState() {
+  const tree = useAtomValue(visibleDepartmentTreeAtom);
+  const [search, setSearch] = useAtom(departmentTreeSearchAtom);
+  const [selectedId, setSelectedId] = useAtom(selectedDepartmentIdAtom);
+  const [expandedIds] = useAtom(expandedDepartmentIdsAtom);
+  const toggleExpand = useSetAtom(toggleDepartmentExpandAtom);
 
   return {
     tree,
@@ -47,4 +51,14 @@ export function useDepartmentTree() {
     expandedIds,
     toggleExpand,
   };
+}
+
+export function useDepartmentTree() {
+  const { params } = useEmployeeSearchParams();
+  const state = useDepartmentTreeState();
+
+  useDepartmentTreeSourceSync();
+  useDepartmentTreeUrlSync(params.departmentId, state.setSelectedId);
+
+  return state;
 }

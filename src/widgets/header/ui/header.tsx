@@ -1,4 +1,7 @@
 import { Building2 } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { ROUTES } from "@/shared/config/routes";
 
 export function Header() {
   return (
@@ -11,19 +14,9 @@ export function Header() {
         <nav>
           <ul className="flex space-x-4">
             <li>
-              <a href="#" className="hover:underline">
-                홈
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:underline">
-                구성원
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:underline">
-                조직도
-              </a>
+              <Link to={ROUTES.EMPLOYEE_MANAGER} className="hover:underline">
+                직원 관리
+              </Link>
             </li>
           </ul>
         </nav>

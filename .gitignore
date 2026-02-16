@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 /docs
+
+# local private agent rules
+.agent-local/
+.opencode-local/

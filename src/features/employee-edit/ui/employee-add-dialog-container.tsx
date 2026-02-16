@@ -1,16 +1,9 @@
-import { EmployeeAddDialog, useCreateEmployeeForm } from "@/entities/employee";
-import { createModalFormHandler } from "@/shared";
+import { EmployeeAddDialog } from "@/entities/employee";
 
-import { useEmployeeActions, useEmployeeDialogState } from "../model/edit-employee.hook";
+import { useAddEmployeeDialogScenario } from "../model/edit-employee.hook";
 
 export function EmployeeAddDialogContainer() {
-  const { isAddOpen, setIsAddOpen } = useEmployeeDialogState();
-  const form = useCreateEmployeeForm();
-  const actions = useEmployeeActions();
-
-  const handleSubmit = createModalFormHandler(form, () => setIsAddOpen(false), true)(async (data) => {
-    await actions.create(data);
-  });
+  const { isAddOpen, setIsAddOpen, form, handleSubmit } = useAddEmployeeDialogScenario();
 
   return <EmployeeAddDialog open={isAddOpen} onOpenChange={setIsAddOpen} form={form} onSubmit={handleSubmit} />;
 }

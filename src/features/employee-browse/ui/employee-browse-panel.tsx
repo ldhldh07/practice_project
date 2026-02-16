@@ -1,18 +1,20 @@
 import { useAtomValue } from "jotai";
+import { useNavigate } from "react-router-dom";
 
 import { selectedDepartmentDescendantsAtom } from "@/entities/department";
-import { EmployeesTable, useSelectedEmployee, useSetEmployeeDetailDialog } from "@/entities/employee";
+import { EmployeesTable, useSelectedEmployee } from "@/entities/employee";
 import { EmployeeFilterContainer } from "@/features/employee-filter";
 import { useEmployeesQuery } from "@/features/employee-load";
+import { ROUTES } from "@/shared/config/routes";
 import { Pagination } from "@/shared/ui/pagination";
 
 import { useEmployeeSearchParams } from "../../employee-filter";
 
 export function EmployeeBrowsePanel() {
+  const navigate = useNavigate();
   const { params, setParams } = useEmployeeSearchParams();
   const selectedDescendants = useAtomValue(selectedDepartmentDescendantsAtom);
   const [, setSelectedEmployee] = useSelectedEmployee();
-  const setDetailOpen = useSetEmployeeDetailDialog();
 
   const departmentIds = selectedDescendants.length > 0 ? selectedDescendants.join(",") : undefined;
 
@@ -33,7 +35,7 @@ export function EmployeeBrowsePanel() {
         employees={data?.employees ?? []}
         onSelect={(employee) => {
           setSelectedEmployee(employee);
-          setDetailOpen(true);
+          navigate(ROUTES.employeeDetail(employee.id));
         }}
       />
       <Pagination

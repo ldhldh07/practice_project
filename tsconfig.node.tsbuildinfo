@@ -1,1 +1,1 @@
-{"root":["./vite.config.ts"],"version":"5.9.2"}
+{"root":["./vite.config.ts","./server/index.ts","./server/data/attendance.ts","./server/data/departments.ts","./server/data/employees.ts","./server/routes/attendance.ts","./server/routes/departments.ts","./server/routes/employees.ts"],"version":"5.9.2"}

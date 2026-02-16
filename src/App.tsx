@@ -1,8 +1,10 @@
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import { RootLayout } from "@/app/ui/layout";
+import { ROUTES } from "@/shared/config/routes";
 import { ErrorBoundary } from "@/shared/ui/error-boundary";
 
+import EmployeeDetailPage from "./pages/employee-detail-page";
 import EmployeeManagerPage from "./pages/employee-manager-page";
 
 const App = () => {
@@ -25,7 +27,10 @@ const App = () => {
     >
       <Router>
         <RootLayout>
-          <EmployeeManagerPage />
+          <Routes>
+            <Route path={ROUTES.EMPLOYEE_MANAGER} element={<EmployeeManagerPage />} />
+            <Route path={ROUTES.EMPLOYEE_DETAIL} element={<EmployeeDetailPage />} />
+          </Routes>
         </RootLayout>
       </Router>
     </ErrorBoundary>
