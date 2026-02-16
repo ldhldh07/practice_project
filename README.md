@@ -679,3 +679,180 @@ export const AppError = {
 
 이렇게 분리해두면, 동일한 에러 기준을 여러 화면에서 재사용할 수 있고
 UI 코드에 저수준 에러 분기(`if status === 401`)가 퍼지는 걸 막을 수 있었습니다.
+
+### 4. 페이지네이션 깜빡임 방지 (placeholderData)
+
+페이지 전환 시 이전 데이터가 사라지면서 화면이 깜빡이는 문제가 있었습니다.
+
+사용자가 다음 페이지로 넘어갈 때마다 빈 화면이 잠깐 보이는 건 UX 측면에서 좋지 않았고,
+특히 필터/정렬을 바꿀 때마다 목록이 사라졌다 나타나는 게 불안정해 보였습니다.
+
+이 문제는 `keepPreviousData`를 `placeholderData`로 전달해서 해결했습니다.
+
+새 데이터가 도착하기 전까지 이전 데이터를 유지하면서,
+로딩 상태는 `isLoading`이 아니라 `isFetching`으로 표현할 수 있어서
+사용자는 데이터가 바뀌는 중이라는 걸 인지하면서도 빈 화면을 보지 않게 됩니다.
+
+```ts
+// src/features/employee-load/model/employee-load.query.ts
+export const buildEmployeesQuery = (params: EmployeesParams) =>
+  queryOptions({
+    queryKey: employeeQueryKeys.list(params),
+    queryFn: () => employeeApi.getList(params),
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+```
+
+```ts
+// src/features/employee-load/model/employees.query.ts
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+
+export function useEmployeesQuery(params: EmployeesParams) {
+  return useQuery({
+    ...buildEmployeesQuery(params),
+    placeholderData: keepPreviousData,
+  });
+}
+```
+
+이렇게 하면 `queryOptions`로 쿼리 설정을 분리하고,
+사용처에서 `placeholderData`만 추가하는 방식으로 깜빡임을 방지할 수 있었습니다.
+
+### 5. navigate 전 prefetch
+
+목록에서 상세로 이동할 때 데이터 로딩 대기 시간을 제거하고 싶었습니다.
+
+사용자가 직원을 클릭하면 상세 페이지로 이동하는데,
+이동 후에 데이터를 fetch하면 로딩 스피너가 보이는 시간이 생깁니다.
+
+이 문제는 `prefetchQuery`를 navigate 전에 호출해서 해결했습니다.
+
+```ts
+// src/features/employee-load/model/employee-load.query.ts
+export const buildEmployeeDetailQuery = (employeeId: number) =>
+  queryOptions({
+    queryKey: employeeQueryKeys.detail(employeeId),
+    queryFn: () => employeeApi.getById(employeeId),
+    enabled: employeeId > 0,
+  });
+```
+
+```ts
+// src/features/employee-browse/model/use-employee-browse.ts
+const onSelect = (employee: Employee) => {
+  setSelectedEmployee(employee);
+  queryClient.prefetchQuery(buildEmployeeDetailQuery(employee.id));
+  navigate(toDetailHref(employee.id));
+};
+```
+
+`queryOptions` 패턴으로 쿼리 설정을 한 곳에서 관리하면,
+prefetch와 useQuery가 동일 설정을 재사용할 수 있어서 일관성이 유지됩니다.
+
+`prefetchQuery`는 fire-and-forget으로 호출하고 즉시 navigate하면,
+상세 페이지 도착 시 캐시에 데이터가 이미 있으므로 즉시 렌더링됩니다.
+
+### 6. 읽기/쓰기 구독 분리 심화
+
+기존에 `useAtom`으로 읽기/쓰기를 함께 구독하던 곳에서,
+읽기만 필요한 곳은 `useAtomValue`로 전환했습니다.
+
+`const [value] = useAtom(atom)` 패턴은 구조분해만 했을 뿐 여전히 write도 구독하므로 리렌더가 발생합니다.
+
+이 문제를 해결하기 위해 entity hook에 read-only 전용 훅을 추가했습니다.
+
+```ts
+// src/entities/employee/model/employee.hook.ts
+// 기존: 읽기/쓰기 함께
+export function useSelectedEmployee(): [Employee | null, (employee: Employee | null) => void] {
+  return useAtom(selectedEmployeeAtom);
+}
+
+// 추가: 읽기 전용
+export function useSelectedEmployeeValue(): Employee | null {
+  return useAtomValue(selectedEmployeeAtom);
+}
+```
+
+```ts
+// src/features/employee-edit/model/edit-employee.hook.ts
+// before: const [selectedEmployee] = useSelectedEmployee(); // write도 구독
+// after:
+const selectedEmployee = useSelectedEmployeeValue(); // read만 구독
+```
+
+이 패턴을 6개 feature 파일에 적용했고,
+setter가 필요 없는 곳에서는 불필요한 구독을 제거할 수 있었습니다.
+
+### 7. 비동기 대기 전략 (fire-and-forget)
+
+optimistic update가 있는 mutation에서 `await mutateAsync` 대신 `mutate`를 사용했습니다.
+
+다이얼로그가 서버 응답을 기다리지 않고 즉시 닫히면 UX 반응성이 향상됩니다.
+
+에러 발생 시 `onError` 콜백에서 롤백 처리하면 되므로,
+사용자는 빠른 피드백을 받으면서도 실패 케이스를 놓치지 않습니다.
+
+```ts
+// src/features/employee-edit/model/edit-employee.hook.ts
+// before
+const handleSubmit = createModalFormHandler(form, async (data) => {
+  await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
+  setIsEditOpen(false);
+});
+
+// after
+const handleSubmit = form.handleSubmit((data) => {
+  if (!selectedEmployee) return;
+  updateMutation.mutate({ employeeId: selectedEmployee.id, params: data });
+  setIsEditOpen(false);
+});
+```
+
+`form.handleSubmit` 콜백 안에서 `mutate` + 즉시 close/reset 패턴을 사용하면,
+사용자는 제출 후 바로 다음 작업을 이어갈 수 있어서 체감 속도가 빨라졌습니다.
+
+### 8. 번들 청크 최적화
+
+Vite 빌드 시 단일 vendor 청크가 500KB를 초과하는 경고가 발생했습니다.
+
+`manualChunks`로 라이브러리별 독립 청크를 분리하면,
+라이브러리 업데이트 시 해당 청크만 캐시 무효화되므로 사용자 재다운로드가 최소화됩니다.
+
+```ts
+// vite.config.ts
+build: {
+  rollupOptions: {
+    output: {
+      manualChunks: (id) => {
+        if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
+          return "vendor-react";
+        }
+        if (id.includes("node_modules/@tanstack/react-query/")) {
+          return "vendor-query";
+        }
+        if (id.includes("node_modules/react-hook-form/") || id.includes("node_modules/@hookform/resolvers/")) {
+          return "vendor-form";
+        }
+        if (id.includes("node_modules/jotai/")) {
+          return "vendor-jotai";
+        }
+        if (id.includes("node_modules/zod/")) {
+          return "vendor-zod";
+        }
+        if (id.includes("node_modules/lucide-react/")) {
+          return "vendor-icons";
+        }
+        if (id.includes("node_modules/")) {
+          return "vendor";
+        }
+      },
+    },
+  },
+},
+```
+
+이렇게 분리한 결과 최대 청크 크기가 502KB에서 220KB로 감소했고,
+React나 Query 같은 안정적인 라이브러리는 캐시 히트율이 높아져서
+배포 후 사용자 로딩 시간이 줄어들었습니다.
