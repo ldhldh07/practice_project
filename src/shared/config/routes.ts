@@ -1,3 +1,3 @@
 export const ROUTES = {
-  POSTS_MANAGER: "/",
+  EMPLOYEE_MANAGER: "/",
 } as const;

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { attendanceRecords, getNextId } from "../data/attendance";
+
 import type { Attendance } from "../data/attendance";
 
 const app = new Hono();

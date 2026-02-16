@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { employees, getNextId } from "../data/employees";
+
 import type { Employee, EmployeeStatus } from "../data/employees";
 
 const app = new Hono();
@@ -10,6 +11,7 @@ app.get("/", (c) => {
   const skip = Number(c.req.query("skip") || "0");
   const search = c.req.query("search") || "";
   const departmentId = c.req.query("departmentId");
+  const departmentIds = c.req.query("departmentIds");
   const status = c.req.query("status") as EmployeeStatus | undefined;
   const sortBy = c.req.query("sortBy") || "id";
   const order = c.req.query("order") || "asc";
@@ -26,7 +28,13 @@ app.get("/", (c) => {
     );
   }
 
-  if (departmentId) {
+  if (departmentIds) {
+    const ids = departmentIds
+      .split(",")
+      .map((v) => Number(v.trim()))
+      .filter((v) => Number.isFinite(v));
+    filtered = filtered.filter((e) => ids.includes(e.departmentId));
+  } else if (departmentId) {
     filtered = filtered.filter((e) => e.departmentId === Number(departmentId));
   }
 
