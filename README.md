@@ -1365,3 +1365,172 @@ export const employeeSchema = z.object({
 
 이 프로젝트에서는 스펙을 수동으로 관리하고 있지만,
 향후 Notion 동기화나 자동 생성으로 확장할 수 있는 기반을 마련했습니다.
+
+### 13. 유틸 함수 카탈로그와 중복 방지
+
+프로젝트가 커지면서 `shared/lib`에 유틸 함수가 늘어나기 시작했습니다.
+
+처음에는 필요한 유틸을 만들 때마다 "이미 있는 건 아닐까"라고 grep으로 찾아봤는데,
+프로젝트 규모가 커질수록 이 방식은 비효율적이었습니다.
+
+특히 새로운 팀원이 합류했을 때 "어떤 유틸이 있는지" 알 수 없어서
+중복 구현이 생기거나 불필요한 유틸을 새로 만드는 일이 반복되었습니다.
+
+#### 카테고리 주석을 통한 유틸 카탈로그
+
+이 문제를 해결하기 위해 `src/shared/lib/index.ts`에 카테고리 주석을 달아서
+barrel export 자체를 유틸 목록으로 만들었습니다.
+
+```ts
+// src/shared/lib/index.ts
+
+// --- Utility ---
+export { cn } from "./cn";
+
+// --- Text ---
+export { splitByHighlight, type HighlightSegment } from "./split-by-highlight";
+
+// --- Form ---
+export { createModalFormHandler } from "./form-handler";
+
+// --- Validation ---
+export { validateSchema } from "./validate";
+
+// --- Environment ---
+export { BASE_URL } from "./env";
+
+// --- Errors ---
+export {
+  BaseError,
+  ApiError,
+  NotFoundError,
+  BadRequestError,
+  NetworkError,
+  TimeoutError,
+  ValidationError,
+  ResponseParseError,
+  AppError,
+} from "./errors";
+
+export {
+  API_ERROR_CODES,
+  CLIENT_ERROR_CODES,
+  NETWORK_ERROR_CODES,
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  getErrorMessage,
+  type ApiErrorCode,
+  type ClientErrorCode,
+  type NetworkErrorCode,
+  type ErrorCode,
+} from "./errors";
+```
+
+이렇게 카테고리를 명시하면:
+
+- 새 유틸을 추가할 때 barrel export를 먼저 확인하면 중복 구현을 방지할 수 있습니다.
+- 코드 리뷰 시에도 "이미 있는 유틸인데 새로 만들었네"를 쉽게 체크할 수 있습니다.
+- 팀원이 프로젝트에 합류했을 때 `src/shared/lib/index.ts`를 보면 "어떤 유틸이 있는지" 한눈에 파악 가능합니다.
+
+#### 6개 카테고리 구조
+
+현재 프로젝트의 유틸은 다음 6개 카테고리로 정리되어 있습니다.
+
+**Utility**: 범용 유틸리티
+
+- `cn`: classname 병합 (tailwind 호환)
+
+**Text**: 텍스트 처리
+
+- `splitByHighlight`: 검색 키워드 기준으로 텍스트 분할
+
+**Form**: 폼 관련 유틸
+
+- `createModalFormHandler`: 다이얼로그 폼 제출 핸들러
+
+**Validation**: 검증 유틸
+
+- `validateSchema`: zod 스키마 검증 및 에러 변환
+
+**Environment**: 환경 설정
+
+- `BASE_URL`: API 기본 URL
+
+**Errors**: 에러 타입 및 코드
+
+- `BaseError`, `ApiError`, `ValidationError` 등 에러 클래스
+- `ERROR_CODES`, `ERROR_MESSAGES` 등 에러 상수
+
+#### shared/index.ts 보강
+
+기존에는 `errors/`와 `env.ts`가 `shared/index.ts`에서 re-export 되지 않아서,
+feature에서 `@/shared/lib/errors`로 직접 import해야 했습니다.
+
+이번에 `shared/index.ts`에 errors와 env를 추가해서
+`@/shared`에서 직접 import 가능하도록 보강했습니다.
+
+```ts
+// src/shared/index.ts
+
+// 기존 UI 컴포넌트들...
+export { Badge } from "./ui/badge";
+export { Button } from "./ui/button";
+// ...
+
+// 기존 API 클라이언트...
+export { createHttpClient, type HttpClient } from "./api/client";
+
+// lib 유틸들
+export { cn } from "./lib/cn";
+export { splitByHighlight, type HighlightSegment } from "./lib/split-by-highlight";
+export { createModalFormHandler } from "./lib/form-handler";
+export { validateSchema } from "./lib/validate";
+
+// Errors (새로 추가)
+export {
+  BaseError,
+  ApiError,
+  NotFoundError,
+  BadRequestError,
+  NetworkError,
+  TimeoutError,
+  ValidationError,
+  ResponseParseError,
+  AppError,
+} from "./lib/errors";
+
+export {
+  API_ERROR_CODES,
+  CLIENT_ERROR_CODES,
+  NETWORK_ERROR_CODES,
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  getErrorMessage,
+  type ApiErrorCode,
+  type ClientErrorCode,
+  type NetworkErrorCode,
+  type ErrorCode,
+} from "./lib/errors";
+
+// Environment (새로 추가)
+export { BASE_URL } from "./lib/env";
+```
+
+이렇게 하면:
+
+- `@/shared`에서 모든 공통 유틸을 import 가능
+- 기존 `@/shared/lib/errors` 경로도 여전히 동작 (호환성 유지)
+- feature에서 import 경로를 통일할 수 있음
+
+#### 중복 방지 효과
+
+이 구조의 실제 효과는:
+
+1. **새 유틸 추가 전 체크**: barrel export를 보면 "이미 있는 건 아닐까" 판단 가능
+2. **코드 리뷰 기준 명확화**: "이 유틸이 이미 있는데 왜 새로 만들었나"를 쉽게 지적 가능
+3. **팀 온보딩 가속화**: 신입이 프로젝트 합류 시 `src/shared/lib/index.ts`를 보면 "어떤 유틸이 있는지" 빠르게 파악
+
+특히 프로젝트가 커질수록 이 카탈로그의 가치가 높아집니다.
+
+유틸이 50개, 100개로 늘어나도 barrel export의 카테고리 주석만 보면
+"Text 처리는 이미 `splitByHighlight`가 있으니 새로 만들 필요 없겠네"라고 판단할 수 있기 때문입니다.
