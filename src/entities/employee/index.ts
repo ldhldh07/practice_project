@@ -33,3 +33,4 @@ export { EmployeeContent } from "./ui/employee-content";
 export { EmployeeAddDialog } from "./ui/employee-add-dialog";
 export { EmployeeEditDialog } from "./ui/employee-edit-dialog";
 export { EmployeePageHeader } from "./ui/employee-page-header";
+export { EmployeeDetailLayout } from "./ui/employee-detail-layout";

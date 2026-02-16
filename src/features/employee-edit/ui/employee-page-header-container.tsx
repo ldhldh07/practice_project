@@ -1,9 +1,7 @@
-import { EmployeePageHeader } from "@/entities/employee";
-
-import { useOpenAddEmployeeDialog } from "../model/edit-employee.hook";
+import { EmployeePageHeader, useSetAddEmployeeDialog } from "@/entities/employee";
 
 export function EmployeePageHeaderContainer() {
-  const setIsAddOpen = useOpenAddEmployeeDialog();
+  const setIsAddOpen = useSetAddEmployeeDialog();
 
   return <EmployeePageHeader onAdd={() => setIsAddOpen(true)} />;
 }

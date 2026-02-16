@@ -1,5 +1,3 @@
-import { useAtom } from "jotai";
-
 import {
   useAddAttendanceDialog,
   useCreateAttendanceForm,
@@ -10,11 +8,6 @@ import {
 import { createModalFormHandler } from "@/shared";
 
 import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "./attendance.mutation";
-import { attendanceDialogModeAtom } from "./edit-attendance.atoms";
-
-export function useAttendanceDialogMode() {
-  return useAtom(attendanceDialogModeAtom);
-}
 
 export function useAttendanceAddDialogFlow(employeeId: number) {
   const [isAddOpen, setIsAddOpen] = useAddAttendanceDialog();

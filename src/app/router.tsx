@@ -2,7 +2,6 @@ import { Suspense, lazy, type ReactNode } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 import { Layout } from "@/app/layout";
-import { RequireValidEmployeeIdGuard } from "@/features/employee-detail";
 import { EMPLOYEE_DETAIL_ROUTE, EMPLOYEE_DETAIL_TITLE, EMPLOYEE_MANAGER_ROUTE, EMPLOYEE_MANAGER_TITLE } from "@/pages";
 import { NOT_FOUND_ROUTE, NOT_FOUND_TITLE } from "@/pages/not-found";
 
@@ -40,14 +39,9 @@ export const router = createBrowserRouter([
         handle: { title: EMPLOYEE_MANAGER_TITLE },
       },
       {
-        element: <RequireValidEmployeeIdGuard redirectPath={EMPLOYEE_MANAGER_ROUTE} />,
-        children: [
-          {
-            path: EMPLOYEE_DETAIL_ROUTE,
-            element: withRouteSuspense(<LazyEmployeeDetailPage />),
-            handle: { title: EMPLOYEE_DETAIL_TITLE },
-          },
-        ],
+        path: EMPLOYEE_DETAIL_ROUTE,
+        element: withRouteSuspense(<LazyEmployeeDetailPage />),
+        handle: { title: EMPLOYEE_DETAIL_TITLE },
       },
       {
         path: NOT_FOUND_ROUTE,

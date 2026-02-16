@@ -1,31 +1,13 @@
-import { useAtom } from "jotai";
-
 import {
   useAddEmployeeDialog,
   useCreateEmployeeForm,
   useEditEmployeeDialog,
   useSelectedEmployee,
-  useSetAddEmployeeDialog,
   useUpdateEmployeeForm,
 } from "@/entities/employee";
 import { createModalFormHandler } from "@/shared";
 
-import { employeeDialogModeAtom } from "./edit-employee.atoms";
-import { useCreateEmployeeMutation, useDeleteEmployeeMutation, useUpdateEmployeeMutation } from "./employee.mutation";
-
-export function useEmployeeDialogMode() {
-  return useAtom(employeeDialogModeAtom);
-}
-
-export function useOpenAddEmployeeDialog() {
-  return useSetAddEmployeeDialog();
-}
-
-export function useDeleteEmployeeAction() {
-  const deleteMutation = useDeleteEmployeeMutation();
-
-  return deleteMutation.mutateAsync;
-}
+import { useCreateEmployeeMutation, useUpdateEmployeeMutation } from "./employee.mutation";
 
 export function useAddEmployeeDialogFlow() {
   const [isAddOpen, setIsAddOpen] = useAddEmployeeDialog();
