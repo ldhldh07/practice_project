@@ -1200,3 +1200,168 @@ entity hook 래핑의 실익이 적었습니다.
 
 이 프로젝트에서는 employee/attendance처럼 단순한 상태는 hook으로 래핑하고,
 department처럼 복잡한 atom 그래프는 직접 export하는 방식으로 가져갔습니다.
+
+### 12. 스펙 기반 개발과 의존성 탐색
+
+이 프로젝트를 진행하면서 코드와 요구사항이 분리되면 자연스럽게 드리프트가 생긴다는 걸 경험했습니다.
+
+기능을 추가할 때마다 "이게 정확히 뭐였더라"를 다시 찾아야 했고,
+변경 영향도를 파악할 때 "어떤 화면이 이 데이터를 쓰지"를 일일이 grep해야 했습니다.
+
+이 문제를 해결하기 위해 `specs/` 폴더에 스펙 문서를 코드 옆에 두기로 했습니다.
+
+#### 스펙 문서를 코드 옆에 두는 이유
+
+vineyard_backoffice 프로젝트에서 본 패턴을 참고했는데,
+스펙 파일에 frontmatter(id, doc_type, depends_on)를 두면 기계적으로 탐색할 수 있다는 게 핵심이었습니다.
+
+```markdown
+---
+id: Employee
+title: "직원"
+doc_type: data
+source: manual
+depends_on: [Department]
+tags: ["employee", "직원", "인사", "관리"]
+---
+
+### 직원
+
+- **목적**
+
+직원의 기본 정보를 관리한다.
+
+- **핵심 필드**
+
+- `id` — 고유 식별자
+- `name` — 직원명
+- `email` — 이메일 (로그인/연락용)
+- `phone` — 전화번호
+- `position` — 직급/직책
+- `departmentId` — 소속 부서 ID (FK → Department)
+- `hireDate` — 입사일
+- `status` — 재직 상태 (`active` | `onLeave` | `resigned`)
+```
+
+이렇게 frontmatter를 두면 스펙 간 의존성을 명시적으로 관리할 수 있고,
+나중에 자동화 도구가 이 정보를 읽어서 정합성을 검증할 수 있습니다.
+
+#### TOON 포맷 인덱스의 장점
+
+`specs/SPEC-INDEX.md`에서 전체 스펙을 한눈에 검색할 수 있도록 TOON 포맷으로 정리했습니다.
+
+```markdown
+specs[15]{path,id,type,deps,status,desc}:
+data-definition/department.md,Department,data,[],stable,부서;조직도;트리;자기참조
+data-definition/employee.md,Employee,data,[Department],stable,직원;기본;정보;관리
+data-definition/attendance.md,Attendance,data,[Employee],stable,근태;출퇴근;기록;관리
+feature-definition/1-1-직원-목록-조회.md,1-1-직원-목록-조회,feature,[Employee,Department],stable,직원;목록;검색;필터;정렬
+feature-definition/1-2-직원-상세-조회.md,1-2-직원-상세-조회,feature,[Employee,Attendance],stable,직원;상세;근태;이력
+...
+screen-definition/EMP-MANAGER.md,EMP-MANAGER,screen,[1-1-직원-목록-조회,4-1-부서-트리-조회],stable,직원;관리;메인;화면
+```
+
+이 포맷의 장점은:
+
+- 전체 스펙을 한 파일에서 검색 가능
+- 각 스펙의 ID, 타입, 의존성, 상태를 컬럼으로 구조화
+- 에이전트나 자동화 도구가 파싱하기 쉬운 형태
+- 새 스펙 추가 시 한 줄만 추가하면 인덱스 갱신 완료
+
+#### 의존성 그래프의 역할
+
+`specs/dependency-graph.json`에서 스펙 간 의존 관계를 명시적으로 관리합니다.
+
+```json
+{
+  "nodes": [
+    { "id": "Employee", "file": "data-definition/employee.md", "doc_type": "data" },
+    { "id": "Attendance", "file": "data-definition/attendance.md", "doc_type": "data" }
+  ],
+  "edges": [
+    { "from": "Employee", "to": "Department", "confidence": "high" },
+    { "from": "Attendance", "to": "Employee", "confidence": "high" },
+    { "from": "1-1-직원-목록-조회", "to": "Employee", "confidence": "high" },
+    { "from": "1-1-직원-목록-조회", "to": "Department", "confidence": "high" }
+  ]
+}
+```
+
+이 그래프를 통해:
+
+- Employee 필드가 바뀌면 어떤 feature와 화면이 영향받는지 추적 가능
+- 부서 삭제 정책을 바꾸면 Attendance까지 연쇄적으로 영향받는 범위를 파악 가능
+- 새 기능 추가 시 기존 스펙과의 의존성을 명시적으로 선언
+
+#### 3계층 스펙 구조
+
+스펙을 3계층으로 나누어 관리합니다.
+
+**data-definition**: 엔티티 데이터 계약
+
+- 필드 정의, FK 관계, 운영 규칙
+- 예: Employee는 Department를 참조하고, 삭제하지 않으며 상태로 관리
+
+**feature-definition**: 기능 단위 정의
+
+- 유저 시나리오, 입출력, 구현 참조
+- 예: "1-1-직원-목록-조회"는 Employee와 Department를 조회하고, 검색/필터/정렬 지원
+
+**screen-definition**: 화면 단위 정의
+
+- 레이아웃, 구성 컴포넌트, 접근 역할
+- 예: EMP-MANAGER는 "1-1-직원-목록-조회"와 "4-1-부서-트리-조회" 기능을 조합
+
+이 계층 구조를 유지하면 변경 영향도를 계층별로 추적할 수 있습니다.
+
+#### 코드와 스펙의 정합성
+
+스펙 문서를 코드 옆에 두면 정합성 검증이 가능해집니다.
+
+예를 들어, Employee 스펙에서 정의한 필드:
+
+```markdown
+- `id` — 고유 식별자
+- `name` — 직원명
+- `email` — 이메일
+- `phone` — 전화번호
+- `position` — 직급/직책
+- `departmentId` — 소속 부서 ID (FK → Department)
+- `hireDate` — 입사일
+- `status` — 재직 상태 (`active` | `onLeave` | `resigned`)
+```
+
+이것이 실제 zod 스키마와 일치하는지 확인할 수 있습니다.
+
+```ts
+// src/entities/employee/model/employee.schema.ts
+export const employeeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  phone: z.string(),
+  position: z.string(),
+  departmentId: z.number(),
+  hireDate: z.string(),
+  status: z.enum(["active", "onLeave", "resigned"]),
+});
+```
+
+또한 feature-definition의 구현 참조가 실제 feature 폴더와 대응하는지도 확인할 수 있습니다.
+
+앞으로 이 정보를 바탕으로 자동 정합성 검증(LINT-REPORT 같은)으로 확장할 수 있습니다.
+
+#### 스펙 기반 개발의 실익
+
+이 방식을 도입한 결과:
+
+- 새 기능 추가 시 먼저 스펙을 작성하고 의존성을 선언
+- 코드 리뷰 시 "이 변경이 어떤 스펙을 영향시키는가"를 명확하게 파악
+- 팀원이 프로젝트에 합류했을 때 스펙 인덱스에서 전체 구조를 빠르게 이해 가능
+- 요구사항 변경 시 영향받는 스펙과 코드를 체계적으로 추적
+
+특히 "이 필드를 삭제해도 되나"라는 질문이 생겼을 때,
+의존성 그래프에서 즉시 "Attendance가 이 필드를 참조하니까 안 된다"는 답을 얻을 수 있었습니다.
+
+이 프로젝트에서는 스펙을 수동으로 관리하고 있지만,
+향후 Notion 동기화나 자동 생성으로 확장할 수 있는 기반을 마련했습니다.
