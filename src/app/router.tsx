@@ -16,7 +16,15 @@ const LazyNotFoundPage = lazy(() =>
   import("@/pages/not-found/NotFoundPage").then((module) => ({ default: module.NotFoundPage })),
 );
 
-const RouteLoadingFallback = <div className="p-6 text-sm text-gray-500">불러오는 중...</div>;
+const RouteLoadingFallback = (
+  <div className="space-y-6 px-6 py-6">
+    <div className="space-y-2">
+      <div className="h-7 w-48 animate-pulse rounded-lg bg-muted" />
+      <div className="h-4 w-72 animate-pulse rounded-lg bg-muted" />
+    </div>
+    <div className="h-[400px] w-full animate-pulse rounded-xl bg-muted" />
+  </div>
+);
 
 function withRouteSuspense(element: ReactNode) {
   return <Suspense fallback={RouteLoadingFallback}>{element}</Suspense>;
