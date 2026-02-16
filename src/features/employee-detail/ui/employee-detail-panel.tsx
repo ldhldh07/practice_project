@@ -16,11 +16,11 @@ import { Button } from "@/shared/ui/button";
 import { Separator } from "@/shared/ui/separator";
 import { Skeleton } from "@/shared/ui/skeleton";
 
-type EmployeeDetailPagePanelProps = {
+type EmployeeDetailPanelProps = {
   employeeId: number;
 };
 
-export function EmployeeDetailPagePanel({ employeeId }: Readonly<EmployeeDetailPagePanelProps>) {
+export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanelProps>) {
   const setSelectedEmployee = useSetSelectedEmployee();
   const [selectedAttendance] = useSelectedAttendance();
 
