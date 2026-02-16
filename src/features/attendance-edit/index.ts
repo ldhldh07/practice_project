@@ -1,7 +1,7 @@
 export {
   useAttendanceDialogMode,
-  useAttendanceAddDialogScenario,
-  useAttendanceEditDialogScenario,
+  useAttendanceAddDialogFlow,
+  useAttendanceEditDialogFlow,
 } from "./model/edit-attendance.hook";
 export { AttendanceListContainer } from "./ui/attendance-list-container";
 export { AttendanceAddDialogContainer } from "./ui/attendance-add-dialog-container";

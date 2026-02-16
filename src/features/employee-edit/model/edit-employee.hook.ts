@@ -27,7 +27,7 @@ export function useDeleteEmployeeAction() {
   return deleteMutation.mutateAsync;
 }
 
-export function useAddEmployeeDialogScenario() {
+export function useAddEmployeeDialogFlow() {
   const [isAddOpen, setIsAddOpen] = useAddEmployeeDialog();
   const form = useCreateEmployeeForm();
   const createMutation = useCreateEmployeeMutation();
@@ -48,7 +48,7 @@ export function useAddEmployeeDialogScenario() {
   };
 }
 
-export function useEditEmployeeDialogScenario() {
+export function useEditEmployeeDialogFlow() {
   const [isEditOpen, setIsEditOpen] = useEditEmployeeDialog();
   const [selectedEmployee] = useSelectedEmployee();
   const form = useUpdateEmployeeForm(selectedEmployee);

@@ -16,7 +16,7 @@ export function useAttendanceDialogMode() {
   return useAtom(attendanceDialogModeAtom);
 }
 
-export function useAttendanceAddDialogScenario(employeeId: number) {
+export function useAttendanceAddDialogFlow(employeeId: number) {
   const [isAddOpen, setIsAddOpen] = useAddAttendanceDialog();
   const form = useCreateAttendanceForm();
   const createMutation = useCreateAttendanceMutation(employeeId);
@@ -37,7 +37,7 @@ export function useAttendanceAddDialogScenario(employeeId: number) {
   };
 }
 
-export function useAttendanceEditDialogScenario(employeeId: number) {
+export function useAttendanceEditDialogFlow(employeeId: number) {
   const [isEditOpen, setIsEditOpen] = useEditAttendanceDialog();
   const [selectedAttendance] = useSelectedAttendance();
   const form = useUpdateAttendanceForm(selectedAttendance);

@@ -1,47 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Pencil, Plus } from "lucide-react";
-import { useEffect } from "react";
 
 import { useSelectedAttendance, useSetAddAttendanceDialog, useSetEditAttendanceDialog } from "@/entities/attendance";
-import {
-  EmployeeContent,
-  employeeApi,
-  employeeQueryKeys,
-  useSetSelectedEmployee,
-  useSetEditEmployeeDialog,
-} from "@/entities/employee";
+import { EmployeeContent, useSetEditEmployeeDialog } from "@/entities/employee";
 import { AttendanceDialogsBySelectedEmployee, AttendanceListContainer } from "@/features/attendance-edit";
 import { EmployeeEditDialogContainer } from "@/features/employee-edit";
 import { Button } from "@/shared/ui/button";
 import { Separator } from "@/shared/ui/separator";
 import { Skeleton } from "@/shared/ui/skeleton";
 
+import { useEmployeeDetailLoad } from "../model/use-employee-detail-load";
+
 type EmployeeDetailPanelProps = {
   employeeId: number;
 };
 
 export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanelProps>) {
-  const setSelectedEmployee = useSetSelectedEmployee();
+  const { employee, isLoading, isError } = useEmployeeDetailLoad(employeeId);
   const [selectedAttendance] = useSelectedAttendance();
 
   const setIsEditEmployeeOpen = useSetEditEmployeeDialog();
   const setIsAddAttendanceOpen = useSetAddAttendanceDialog();
   const setIsEditAttendanceOpen = useSetEditAttendanceDialog();
-
-  const query = useQuery({
-    queryKey: employeeQueryKeys.detail(employeeId),
-    queryFn: () => employeeApi.getById(employeeId),
-    enabled: employeeId > 0,
-  });
-
-  useEffect(() => {
-    if (!query.data) return;
-    setSelectedEmployee(query.data);
-
-    return () => {
-      setSelectedEmployee(null);
-    };
-  }, [query.data, setSelectedEmployee]);
 
   if (employeeId <= 0) {
     return (
@@ -51,7 +30,7 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
     );
   }
 
-  if (query.isLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
@@ -69,7 +48,7 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
     );
   }
 
-  if (query.isError || !query.data) {
+  if (isError || !employee) {
     return (
       <div className="flex h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground">
         <AlertCircle className="h-5 w-5 text-destructive" />
@@ -80,7 +59,7 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
 
   return (
     <div className="space-y-6">
-      <EmployeeContent employee={query.data} />
+      <EmployeeContent employee={employee} />
 
       <Separator />
 
