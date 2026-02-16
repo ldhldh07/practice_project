@@ -10,3 +10,10 @@ export const buildEmployeesQuery = (params: EmployeesParams) =>
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
+
+export const buildEmployeeDetailQuery = (employeeId: number) =>
+  queryOptions({
+    queryKey: employeeQueryKeys.detail(employeeId),
+    queryFn: () => employeeApi.getById(employeeId),
+    enabled: employeeId > 0,
+  });
