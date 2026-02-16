@@ -201,19 +201,64 @@ export function EmployeeBodyWidget() {
 
 비즈니스 로직을 Custom Hook으로 추상화할 때 어느 수준의 덩어리로 추상화를 해야할지 그 기준도 고민이 됐습니다.
 
+훅 추상화는 두 가지 축을 함께 고려해야 합니다:
+
+1. **유저 시나리오 단위**: 하나의 사용자 흐름을 end-to-end로 오케스트레이션하는 단위
+2. **관심사 독립성**: 하나의 훅에 너무 많은 관심사를 넣지 않고, 독립적인 관심사는 분리
+
+이 두 축을 함께 적용하면 자연스럽게 적절한 추상화 수준이 결정됩니다.
+
+#### 유저 시나리오 단위 오케스트레이션
+
+사용자 관점에서 하나의 완결된 흐름을 담당하는 훅을 만듭니다.
+
+```ts
+// features/employee-edit/model/edit-employee.hook.ts
+export function useAddEmployeeDialogFlow() {
+  const [isOpen, setIsOpen] = useAddEmployeeDialog();
+  const form = useCreateEmployeeForm();
+  const actions = useEmployeeActions();
+
+  const handleSubmit = async (data) => {
+    await actions.create(data);
+    setIsOpen(false);
+  };
+
+  return { isOpen, setIsOpen, form, handleSubmit };
+}
+
+export function useEditEmployeeDialogFlow() {
+  const [isOpen, setIsOpen] = useEditEmployeeDialog();
+  const [selectedEmployee] = useSelectedEmployee();
+  const form = useUpdateEmployeeForm(selectedEmployee);
+  const actions = useEmployeeActions();
+
+  const handleSubmit = async (data) => {
+    if (!selectedEmployee) return;
+    await actions.update({ employeeId: selectedEmployee.id, params: data });
+    setIsOpen(false);
+  };
+
+  return { isOpen, setIsOpen, form, handleSubmit, selectedEmployee };
+}
+```
+
+직원 추가와 직원 수정은 독립적인 시나리오이므로 하나의 훅으로 억지로 묶지 않습니다. 각각의 흐름이 명확하게 분리되어 있어 유지보수가 쉽습니다.
+
+#### 관심사 독립성에 따른 분리
+
+하나의 시나리오 안에서도 독립적인 관심사는 서브훅으로 분리합니다.
+
 ```typescript
 // before
 export function useDepartmentTree() {
   // fetch + url sync + tree state가 한곳에 섞여있던 형태
   // ...
-  ...
 }
 ```
 
-강하게 결합되어있는 로직인 경우에는 하나의 훅으로 묶는다
-
 ```ts
-// after
+// after - 서브훅으로 관심사 분리
 function useDepartmentTreeSourceSync() {
   const query = useQuery({ queryKey: departmentQueryKeys.list(), queryFn: () => departmentApi.getList() });
   // source atom hydration
@@ -229,15 +274,69 @@ function useDepartmentTreeState() {
 
 export function useDepartmentTree() {
   // orchestration만 담당
+  useDepartmentTreeSourceSync();
+  const state = useDepartmentTreeState();
+  useDepartmentTreeUrlSync(params.departmentId, state.setSelectedId);
+
+  return state;
 }
 ```
 
-독립적으로 사용될 수 있는 훅은 별개로 정의한다
+이렇게 분리하면:
 
-이때 아래와 같은 코드로 작성한 이유는 다음과 같습니다.
+- 각 서브훅은 독립적으로 테스트 가능합니다
+- 데이터 fetch, URL 동기화, 상태 관리 등 각 관심사가 명확히 분리됩니다
+- 오케스트레이터 훅은 이들을 조합하는 역할만 담당합니다
 
-- 의존성이 없다 - 독립적으로 사용될 가능성이 높다.
-- useState의 형태로서 일관성 있는 코드를 작성할 수 있다.
+#### 패스스루 훅 안티패턴
+
+entity 훅을 그대로 return만 하는 feature 훅은 시나리오 의미가 없으므로 제거 대상입니다.
+
+```ts
+// ❌ 잘못된 예시 - 패스스루 훅
+export function useOpenAddEmployeeDialog() {
+  return useSetAddEmployeeDialog(); // entity 훅을 그대로 return
+}
+
+export function useDeleteEmployeeAction() {
+  const { mutateAsync } = useDeleteEmployee();
+  return { deleteEmployee: mutateAsync }; // mutateAsync만 return
+}
+```
+
+이런 훅들은 다음과 같은 문제가 있습니다:
+
+- entity 훅 대비 추가적인 오케스트레이션이나 정책을 제공하지 않습니다
+- 단순히 이름만 바꾸는 역할만 하여 불필요한 레이어를 추가합니다
+- 실제 사용처가 없거나 매우 적습니다
+
+**판단 기준**: "이 훅이 entity 훅 대비 추가적인 오케스트레이션이나 정책을 제공하는가?"
+
+```ts
+// ✅ 올바른 예시 - 시나리오 오케스트레이션
+export function useAddEmployeeDialogFlow() {
+  const [isOpen, setIsOpen] = useAddEmployeeDialog();
+  const form = useCreateEmployeeForm();
+  const actions = useEmployeeActions();
+
+  // 폼 제출 + 다이얼로그 닫기 + 에러 처리 등 시나리오 전체를 오케스트레이션
+  const handleSubmit = async (data) => {
+    await actions.create(data);
+    setIsOpen(false);
+  };
+
+  return { isOpen, setIsOpen, form, handleSubmit };
+}
+```
+
+이 훅은 다이얼로그 상태, 폼, 액션을 조합하여 "직원 추가 다이얼로그"라는 완결된 시나리오를 제공합니다.
+
+#### 정리
+
+- **유저 시나리오 기반으로 묶되**, 독립적인 시나리오는 억지로 하나로 합치지 않습니다
+- **관심사가 독립적이면 서브훅으로 분리**하여 오케스트레이터 훅이 조합하도록 합니다
+- **패스스루 훅은 제거**하고, entity 훅을 직접 사용하거나 실제 오케스트레이션을 제공하는 훅으로 대체합니다
+- useState의 형태로서 일관성 있는 코드를 작성할 수 있습니다
 
 ### 5. UI 분리의 기준
 
