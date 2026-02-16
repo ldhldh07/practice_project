@@ -6,22 +6,18 @@ export function createModalFormHandler<T extends FieldValues>(
   resetOnSuccess = true,
 ) {
   return (onValid: (data: T) => Promise<void> | void) => {
-    return form.handleSubmit(
-      async (data) => {
-        try {
-          await onValid(data);
-          if (resetOnSuccess) {
-            form.reset();
-          }
-        } catch (error) {
-          console.error("폼 제출 중 오류:", error);
-        } finally {
-          closeModal();
+    return form.handleSubmit(async (data) => {
+      try {
+        await onValid(data);
+        if (resetOnSuccess) {
+          form.reset();
         }
-      },
-      (errors) => {
-        console.log("폼 검증 실패:", errors);
-      },
-    );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "폼 제출 중 오류가 발생했습니다.";
+        form.setError("root", { type: "server", message });
+      } finally {
+        closeModal();
+      }
+    });
   };
 }

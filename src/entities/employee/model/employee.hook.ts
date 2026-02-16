@@ -44,7 +44,7 @@ export function useSetEditEmployeeDialog(): (open: boolean) => void {
   return useSetAtom(isEditEmployeeDialogOpenAtom);
 }
 
-const createEmployeeFormSchema = z.object({
+const employeeFormSchema = z.object({
   name: z.string().min(1, "이름을 입력해주세요"),
   email: z.string().email("올바른 이메일을 입력해주세요"),
   phone: z.string().min(1, "전화번호를 입력해주세요"),
@@ -54,23 +54,13 @@ const createEmployeeFormSchema = z.object({
   status: z.enum(["active", "onLeave", "resigned"]),
 });
 
-export type CreateEmployeeFormData = z.infer<typeof createEmployeeFormSchema>;
+export type CreateEmployeeFormData = z.infer<typeof employeeFormSchema>;
 
-const updateEmployeeFormSchema = z.object({
-  name: z.string().min(1, "이름을 입력해주세요"),
-  email: z.string().email("올바른 이메일을 입력해주세요"),
-  phone: z.string().min(1, "전화번호를 입력해주세요"),
-  position: z.string().min(1, "직책을 입력해주세요"),
-  departmentId: z.number().min(1, "부서를 선택해주세요"),
-  hireDate: z.string().min(1, "입사일을 입력해주세요"),
-  status: z.enum(["active", "onLeave", "resigned"]),
-});
-
-export type UpdateEmployeeFormData = z.infer<typeof updateEmployeeFormSchema>;
+export type UpdateEmployeeFormData = z.infer<typeof employeeFormSchema>;
 
 export function useCreateEmployeeForm() {
   return useForm<CreateEmployeeFormData>({
-    resolver: zodResolver(createEmployeeFormSchema),
+    resolver: zodResolver(employeeFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -85,7 +75,7 @@ export function useCreateEmployeeForm() {
 
 export function useUpdateEmployeeForm(employee: Employee | null) {
   return useForm<UpdateEmployeeFormData>({
-    resolver: zodResolver(updateEmployeeFormSchema),
+    resolver: zodResolver(employeeFormSchema),
     values: employee
       ? {
           name: employee.name,
