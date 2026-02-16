@@ -1,18 +1,16 @@
-import { Pencil, Plus } from "lucide-react";
-
 import {
   useSelectedAttendanceValue,
   useSetAddAttendanceDialog,
   useSetEditAttendanceDialog,
 } from "@/entities/attendance";
 import {
+  EmployeeActionBar,
   EmployeeContent,
   useEmployeeDetailDialog,
   useSelectedEmployeeValue,
   useSetEditEmployeeDialog,
 } from "@/entities/employee";
 import { AttendanceListContainer } from "@/features/attendance-edit";
-import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Separator } from "@/shared/ui/separator";
 
@@ -36,32 +34,15 @@ export function EmployeeDetailDialogContainer() {
 
         <Separator />
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setIsEditEmployeeOpen(true);
-              setIsDetailOpen(false);
-            }}
-          >
-            <Pencil />
-            직원 정보 수정
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setIsAddAttendanceOpen(true)}>
-            <Plus />
-            근태 추가
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!selectedAttendance}
-            onClick={() => setIsEditAttendanceOpen(true)}
-          >
-            <Pencil />
-            선택 근태 수정
-          </Button>
-        </div>
+        <EmployeeActionBar
+          onEditEmployee={() => {
+            setIsEditEmployeeOpen(true);
+            setIsDetailOpen(false);
+          }}
+          onAddAttendance={() => setIsAddAttendanceOpen(true)}
+          onEditAttendance={() => setIsEditAttendanceOpen(true)}
+          canEditAttendance={!!selectedAttendance}
+        />
 
         {selectedEmployee ? <AttendanceListContainer employeeId={selectedEmployee.id} /> : null}
       </DialogContent>
