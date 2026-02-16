@@ -1,12 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { isAddEmployeeDialogOpenAtom, isEditEmployeeDialogOpenAtom, isEmployeeDetailDialogOpenAtom, selectedEmployeeAtom } from "./employee.atom";
-import { employeeQueryKeys } from "./employee.keys";
-import { employeeApi } from "../api/employee.api";
+import {
+  isAddEmployeeDialogOpenAtom,
+  isEditEmployeeDialogOpenAtom,
+  isEmployeeDetailDialogOpenAtom,
+  selectedEmployeeAtom,
+} from "./employee.atom";
 
 import type { Employee } from "./employee.types";
 
@@ -18,26 +20,24 @@ export function useEmployeeDetailDialog(): [boolean, (open: boolean) => void] {
   return useAtom(isEmployeeDetailDialogOpenAtom);
 }
 
+export function useSetEmployeeDetailDialog(): (open: boolean) => void {
+  return useSetAtom(isEmployeeDetailDialogOpenAtom);
+}
+
 export function useAddEmployeeDialog(): [boolean, (open: boolean) => void] {
   return useAtom(isAddEmployeeDialogOpenAtom);
+}
+
+export function useSetAddEmployeeDialog(): (open: boolean) => void {
+  return useSetAtom(isAddEmployeeDialogOpenAtom);
 }
 
 export function useEditEmployeeDialog(): [boolean, (open: boolean) => void] {
   return useAtom(isEditEmployeeDialogOpenAtom);
 }
 
-export function useEmployeeManager() {
-  const queryClient = useQueryClient();
-
-  return {
-    getById: (id: number) => employeeApi.getById(id),
-
-    prefetchById: (id: number) =>
-      queryClient.prefetchQuery({
-        queryKey: employeeQueryKeys.detail(id),
-        queryFn: () => employeeApi.getById(id),
-      }),
-  };
+export function useSetEditEmployeeDialog(): (open: boolean) => void {
+  return useSetAtom(isEditEmployeeDialogOpenAtom);
 }
 
 const createEmployeeFormSchema = z.object({

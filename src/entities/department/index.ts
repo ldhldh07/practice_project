@@ -2,7 +2,6 @@ export type { Department, DepartmentTreeNode } from "./model/department.types";
 
 export { departmentApi } from "./api/department.api";
 export { departmentQueryKeys } from "./model/department.keys";
-export { departmentsQuery } from "./model/department.query";
 export { buildDepartmentTree, flattenDepartmentTree, findDescendantDepartmentIds } from "./model/department.tree";
 
 export {

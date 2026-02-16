@@ -1,10 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { employeeQueryKeys } from "./employee.keys";
-import { employeeApi } from "../api/employee.api";
-
-import type { Employee } from "./employee.types";
-import type { CreateEmployeeParams, EmployeesResponse, UpdateEmployeePayload } from "../api/employee.api";
+import { employeeApi, employeeQueryKeys } from "@/entities/employee";
+import type { Employee } from "@/entities/employee";
+import type { CreateEmployeeParams, EmployeesResponse, UpdateEmployeePayload } from "@/entities/employee";
 
 export function useCreateEmployeeMutation() {
   const queryClient = useQueryClient();

@@ -8,13 +8,13 @@ export { attendanceQueryKeys } from "./model/attendance.keys";
 export {
   useSelectedAttendance,
   useAddAttendanceDialog,
+  useSetAddAttendanceDialog,
   useEditAttendanceDialog,
+  useSetEditAttendanceDialog,
   useCreateAttendanceForm,
   useUpdateAttendanceForm,
   type AttendanceFormData,
 } from "./model/attendance.hook";
-
-export { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "./model/attendance.query";
 
 export { AttendanceList } from "./ui/attendance-list";
 export { AttendanceAddDialog } from "./ui/attendance-add-dialog";

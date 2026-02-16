@@ -1,16 +1,20 @@
-import { useAddAttendanceDialog, useEditAttendanceDialog, useSelectedAttendance } from "@/entities/attendance";
-import { EmployeeContent, useEditEmployeeDialog, useEmployeeDetailDialog, useSelectedEmployee } from "@/entities/employee";
+import { useSelectedAttendance, useSetAddAttendanceDialog, useSetEditAttendanceDialog } from "@/entities/attendance";
+import {
+  EmployeeContent,
+  useEmployeeDetailDialog,
+  useSelectedEmployee,
+  useSetEditEmployeeDialog,
+} from "@/entities/employee";
 import { AttendanceListContainer } from "@/features/attendance-edit";
 import { Button } from "@/shared/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 
-
 export function EmployeeDetailDialogContainer() {
   const [selectedEmployee] = useSelectedEmployee();
   const [isDetailOpen, setIsDetailOpen] = useEmployeeDetailDialog();
-  const [, setIsEditEmployeeOpen] = useEditEmployeeDialog();
-  const [, setIsAddAttendanceOpen] = useAddAttendanceDialog();
-  const [, setIsEditAttendanceOpen] = useEditAttendanceDialog();
+  const setIsEditEmployeeOpen = useSetEditEmployeeDialog();
+  const setIsAddAttendanceOpen = useSetAddAttendanceDialog();
+  const setIsEditAttendanceOpen = useSetEditAttendanceDialog();
   const [selectedAttendance] = useSelectedAttendance();
 
   return (

@@ -12,7 +12,7 @@ import {
   toggleDepartmentExpandAtom,
   visibleDepartmentTreeAtom,
 } from "@/entities/department";
-import { useEmployeeSearchParams } from "@/entities/employee";
+import { useEmployeeSearchParams } from "@/features/employee-filter";
 
 export function useDepartmentTree() {
   const { params } = useEmployeeSearchParams();

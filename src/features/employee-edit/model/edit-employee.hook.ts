@@ -1,14 +1,9 @@
 import { useAtom } from "jotai";
 
-import {
-  useAddEmployeeDialog,
-  useCreateEmployeeMutation,
-  useDeleteEmployeeMutation,
-  useEditEmployeeDialog,
-  useUpdateEmployeeMutation,
-} from "@/entities/employee";
+import { useAddEmployeeDialog, useEditEmployeeDialog, useSetAddEmployeeDialog } from "@/entities/employee";
 
 import { employeeDialogModeAtom } from "./edit-employee.atoms";
+import { useCreateEmployeeMutation, useDeleteEmployeeMutation, useUpdateEmployeeMutation } from "./employee.mutation";
 
 export function useEmployeeDialogMode() {
   return useAtom(employeeDialogModeAtom);
@@ -36,4 +31,8 @@ export function useEmployeeDialogState() {
     isEditOpen,
     setIsEditOpen,
   };
+}
+
+export function useOpenAddEmployeeDialog() {
+  return useSetAddEmployeeDialog();
 }

@@ -1,13 +1,8 @@
 import { useAtom } from "jotai";
 
-import {
-  useAddAttendanceDialog,
-  useCreateAttendanceMutation,
-  useEditAttendanceDialog,
-  useSelectedAttendance,
-  useUpdateAttendanceMutation,
-} from "@/entities/attendance";
+import { useAddAttendanceDialog, useEditAttendanceDialog, useSelectedAttendance } from "@/entities/attendance";
 
+import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "./attendance.mutation";
 import { attendanceDialogModeAtom } from "./edit-attendance.atoms";
 
 export function useAttendanceDialogMode() {

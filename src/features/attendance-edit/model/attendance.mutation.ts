@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { attendanceQueryKeys } from "./attendance.keys";
-import { attendanceApi } from "../api/attendance.api";
-
-import type { Attendance } from "./attendance.types";
-import type { AttendanceListResponse, CreateAttendanceParams, UpdateAttendanceParams } from "../api/attendance.api";
+import { attendanceApi, attendanceQueryKeys } from "@/entities/attendance";
+import type {
+  Attendance,
+  AttendanceListResponse,
+  CreateAttendanceParams,
+  UpdateAttendanceParams,
+} from "@/entities/attendance";
 
 export function useCreateAttendanceMutation(employeeId: number) {
   const queryClient = useQueryClient();

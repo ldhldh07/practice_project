@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 
-import type { EmployeeSortBy, SortOrder } from "./employee.types";
+import type { EmployeeSortBy, SortOrder } from "@/entities/employee";
 
 export type EmployeeSearchParams = {
   limit: number;

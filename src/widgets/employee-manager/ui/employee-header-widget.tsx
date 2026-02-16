@@ -1,10 +1,9 @@
-import { useAddEmployeeDialog } from "@/entities/employee";
+import { useOpenAddEmployeeDialog } from "@/features/employee-edit";
 import { Button } from "@/shared/ui/button";
 import { CardHeader, CardTitle } from "@/shared/ui/card";
 
-
 export function EmployeeHeaderWidget() {
-  const [, setIsAddOpen] = useAddEmployeeDialog();
+  const setIsAddOpen = useOpenAddEmployeeDialog();
 
   return (
     <CardHeader className="flex-row items-center justify-between">

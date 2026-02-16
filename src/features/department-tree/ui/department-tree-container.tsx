@@ -1,6 +1,5 @@
-
 import { DepartmentTree } from "@/entities/department";
-import { useEmployeeSearchParams } from "@/entities/employee";
+import { useEmployeeSearchParams } from "@/features/employee-filter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 

@@ -1,11 +1,11 @@
-import js from "@eslint/js"
-import globals from "globals"
-import reactHooks from "eslint-plugin-react-hooks"
-import reactRefresh from "eslint-plugin-react-refresh"
-import tseslint from "typescript-eslint"
-import pluginImport from "eslint-plugin-import"
-import boundaries from "eslint-plugin-boundaries"
-import path from "node:path"
+import js from "@eslint/js";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+import pluginImport from "eslint-plugin-import";
+import boundaries from "eslint-plugin-boundaries";
+import path from "node:path";
 
 export default tseslint.config(
   { ignores: ["dist", "vite-env.d.ts", "vitest.config.ts"] },
@@ -78,4 +78,26 @@ export default tseslint.config(
       ],
     },
   },
-)
+  {
+    files: ["src/widgets/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@/entities", "@/entities/*", "@/entities/**"],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/pages/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@/entities", "@/entities/*", "@/entities/**", "@/features", "@/features/*", "@/features/**"],
+        },
+      ],
+    },
+  },
+);
