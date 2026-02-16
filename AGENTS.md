@@ -323,6 +323,23 @@ Selection rule:
 - `vineyard_backoffice`: AGENTS operationalization, strict layer role documentation, API error normalization.
 - `toss-train-reservation`: 3-layer state ownership, action-atom cascades, queryOptions + prefetch pattern.
 
+## Hidden Agent Reference Repos
+
+- `train_reservation` feature branch reference
+  - remote: `https://github.com/ldhldh07/train_reservation`
+  - local expected path: `/Users/doohyun/Desktop/train_reservation`
+- `photo_app` reference
+  - remote: `https://github.com/ldhldh07/photo_app`
+  - local expected path: `/Users/doohyun/Desktop/photo_app`
+- `exchange_app` reference
+  - remote: `https://github.com/ldhldh07/exchage_app`
+  - local fallback path: `/Users/doohyun/Desktop/exchange_practice`
+- `weather_app` reference
+  - remote: `https://github.com/ldhldh07/weather_app`
+  - local path: `/Users/doohyun/Desktop/weather`
+- `op_practice` routing/constants reference
+  - local path: `/Users/doohyun/Desktop/op_practice`
+
 ## Definition of Done
 
 - Lint passes.
