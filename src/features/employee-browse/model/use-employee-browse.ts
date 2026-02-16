@@ -6,7 +6,10 @@ import { useSetSelectedEmployee } from "@/entities/employee";
 import type { Employee } from "@/entities/employee";
 import { useEmployeeSearchParams } from "@/features/employee-filter";
 import { useEmployeesQuery } from "@/features/employee-load";
-import { getEmployeeDetailHref } from "@/pages";
+
+type UseEmployeeBrowseParams = {
+  toDetailHref: (employeeId: number) => string;
+};
 
 function useEmployeeListQuery() {
   const { params } = useEmployeeSearchParams();
@@ -24,7 +27,7 @@ function useEmployeeListQuery() {
   });
 }
 
-export function useEmployeeBrowse() {
+export function useEmployeeBrowse({ toDetailHref }: Readonly<UseEmployeeBrowseParams>) {
   const { params, setParams } = useEmployeeSearchParams();
   const { data } = useEmployeeListQuery();
   const navigate = useNavigate();
@@ -32,7 +35,7 @@ export function useEmployeeBrowse() {
 
   const onSelect = (employee: Employee) => {
     setSelectedEmployee(employee);
-    navigate(getEmployeeDetailHref(employee.id));
+    navigate(toDetailHref(employee.id));
   };
 
   const onChangeLimit = (value: number) => setParams({ limit: value, skip: 0 });

@@ -1,7 +1,7 @@
 import { FileQuestion, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { EMPLOYEE_MANAGER_ROUTE } from "@/pages";
+import { EMPLOYEE_MANAGER_ROUTE } from "@/shared/config/routes";
 
 export function NotFoundPage() {
   return (

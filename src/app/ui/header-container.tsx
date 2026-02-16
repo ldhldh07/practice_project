@@ -1,8 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 
-import { cn } from "@shared/lib/cn";
-
-import { EMPLOYEE_MANAGER_ROUTE } from "@/pages";
+import { EMPLOYEE_MANAGER_ROUTE } from "@/shared/config/routes";
+import { cn } from "@/shared/lib/cn";
 
 import { Header } from "./header";
 

@@ -4,8 +4,14 @@ import { Pagination } from "@/shared/ui/pagination";
 
 import { useEmployeeBrowse } from "../model/use-employee-browse";
 
-export function EmployeeBrowsePanel() {
-  const { employees, total, skip, limit, onSelect, onChangeLimit, onPrev, onNext } = useEmployeeBrowse();
+type EmployeeBrowsePanelProps = {
+  toDetailHref: (employeeId: number) => string;
+};
+
+export function EmployeeBrowsePanel({ toDetailHref }: Readonly<EmployeeBrowsePanelProps>) {
+  const { employees, total, skip, limit, onSelect, onChangeLimit, onPrev, onNext } = useEmployeeBrowse({
+    toDetailHref,
+  });
 
   return (
     <div className="space-y-4">

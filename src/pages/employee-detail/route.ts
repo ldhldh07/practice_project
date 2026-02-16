@@ -1,4 +1,2 @@
-export const EMPLOYEE_DETAIL_ROUTE = "/employees/:employeeId";
+export { EMPLOYEE_DETAIL_ROUTE, getEmployeeDetailHref } from "@/shared/config/routes";
 export const EMPLOYEE_DETAIL_TITLE = "직원 상세";
-
-export const getEmployeeDetailHref = (employeeId: number | string) => `/employees/${employeeId}`;

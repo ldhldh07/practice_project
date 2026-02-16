@@ -95,7 +95,7 @@ export default tseslint.config(
       "no-restricted-imports": [
         "error",
         {
-          patterns: ["@/entities", "@/entities/*", "@/entities/**", "@/features", "@/features/*", "@/features/**"],
+          patterns: ["@/entities", "@/entities/*", "@/entities/**"],
         },
       ],
     },

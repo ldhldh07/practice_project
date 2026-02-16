@@ -2,8 +2,9 @@ import { Suspense, lazy, type ReactNode } from "react";
 import { createBrowserRouter } from "react-router-dom";
 
 import { Layout } from "@/app/layout";
-import { EMPLOYEE_DETAIL_ROUTE, EMPLOYEE_DETAIL_TITLE, EMPLOYEE_MANAGER_ROUTE, EMPLOYEE_MANAGER_TITLE } from "@/pages";
+import { EMPLOYEE_DETAIL_TITLE, EMPLOYEE_MANAGER_TITLE } from "@/pages";
 import { NOT_FOUND_ROUTE, NOT_FOUND_TITLE } from "@/pages/not-found";
+import { EMPLOYEE_DETAIL_ROUTE, EMPLOYEE_MANAGER_ROUTE } from "@/shared/config/routes";
 
 const LazyEmployeeManagerPage = lazy(() =>
   import("@/pages/employee-manager/EmployeeManagerPage").then((module) => ({ default: module.EmployeeManagerPage })),
