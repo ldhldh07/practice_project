@@ -8,8 +8,12 @@ type EmployeeBodyWidgetProps = {
 export function EmployeeBodyWidget({ toEmployeeDetailHref }: Readonly<EmployeeBodyWidgetProps>) {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-      <DepartmentTreeContainer />
-      <EmployeeBrowsePanel toDetailHref={toEmployeeDetailHref} />
+      <aside>
+        <DepartmentTreeContainer />
+      </aside>
+      <section>
+        <EmployeeBrowsePanel toDetailHref={toEmployeeDetailHref} />
+      </section>
     </div>
   );
 }

@@ -24,9 +24,9 @@ function InfoItem({ label, value }: Readonly<{ label: string; value: string | nu
 export function EmployeeContent({ employee }: Readonly<EmployeeContentProps>) {
   if (!employee) {
     return (
-      <div className="flex h-24 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <p className="flex h-24 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         선택된 직원이 없습니다
-      </div>
+      </p>
     );
   }
 

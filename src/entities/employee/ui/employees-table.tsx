@@ -17,9 +17,9 @@ const STATUS_CONFIG: Record<Employee["status"], { label: string; variant: "succe
 export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableProps>) {
   if (employees.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <p className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         조건에 맞는 직원이 없습니다
-      </div>
+      </p>
     );
   }
 

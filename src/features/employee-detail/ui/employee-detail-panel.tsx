@@ -28,9 +28,9 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
 
   if (employeeId <= 0) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <p className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         유효하지 않은 직원 ID입니다.
-      </div>
+      </p>
     );
   }
 
@@ -62,7 +62,7 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
   }
 
   return (
-    <div className="space-y-6">
+    <section className="space-y-6">
       <EmployeeContent employee={employee} />
 
       <Separator />
@@ -91,6 +91,6 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
 
       <EmployeeEditDialogContainer />
       <AttendanceDialogsBySelectedEmployee />
-    </div>
+    </section>
   );
 }

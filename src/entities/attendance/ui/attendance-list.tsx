@@ -22,9 +22,9 @@ const STATUS_CONFIG: Record<
 export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceListProps>) {
   if (attendance.length === 0) {
     return (
-      <div className="flex h-24 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <p className="flex h-24 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
         근태 기록이 없습니다
-      </div>
+      </p>
     );
   }
 

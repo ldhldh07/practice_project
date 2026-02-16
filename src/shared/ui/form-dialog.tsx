@@ -28,15 +28,22 @@ export function FormDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-2">{children}</div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            취소
-          </Button>
-          <Button onClick={() => void onSubmit()} disabled={disabled}>
-            {submitLabel}
-          </Button>
-        </DialogFooter>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void onSubmit();
+          }}
+        >
+          <div className="grid gap-4 py-2">{children}</div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              취소
+            </Button>
+            <Button type="submit" disabled={disabled}>
+              {submitLabel}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

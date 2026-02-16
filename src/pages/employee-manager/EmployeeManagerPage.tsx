@@ -4,10 +4,10 @@ import { EmployeeBodyWidget, EmployeeDialogsWidget } from "@/widgets/employee-ma
 
 export function EmployeeManagerPage() {
   return (
-    <div className="space-y-6">
+    <section className="space-y-6">
       <EmployeePageHeaderContainer />
       <EmployeeBodyWidget toEmployeeDetailHref={getEmployeeDetailHref} />
       <EmployeeDialogsWidget />
-    </div>
+    </section>
   );
 }
