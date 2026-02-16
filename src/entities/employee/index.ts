@@ -32,3 +32,4 @@ export { EmployeeContent } from "./ui/employee-content";
 export { EmployeeDetailCard } from "./ui/employee-detail-card";
 export { EmployeeAddDialog } from "./ui/employee-add-dialog";
 export { EmployeeEditDialog } from "./ui/employee-edit-dialog";
+export { EmployeePageHeader } from "./ui/employee-page-header";
