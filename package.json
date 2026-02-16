@@ -1,6 +1,6 @@
 {
-  "name": "post-manager",
-  "description": "FSD 아키텍처 기반 게시물 관리 애플리케이션",
+  "name": "hr-manager",
+  "description": "FSD 아키텍처 기반 인사관리 백오피스",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@hono/vite-dev-server": "0.25.0",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -45,6 +46,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "gh-pages": "6.3.0",
     "globals": "^16.3.0",
+    "hono": "4.11.9",
     "jsdom": "^26.1.0",
     "msw": "^2.10.4",
     "prettier": "^3.6.2",

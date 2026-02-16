@@ -1,12 +1,17 @@
 import path from "node:path";
 
+import devServer from "@hono/vite-dev-server";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  base: "/front_6th_chapter2-3/",
+  plugins: [
+    react(),
+    devServer({
+      entry: "./server/index.ts",
+      exclude: [/^(?!\/api).*/],
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -16,17 +21,6 @@ export default defineConfig({
       "@features": path.resolve(__dirname, "src/features"),
       "@entities": path.resolve(__dirname, "src/entities"),
       "@shared": path.resolve(__dirname, "src/shared"),
-      "@components": path.resolve(__dirname, "src/components"),
-    },
-  },
-  server: {
-    proxy: {
-      "/api": {
-        // target: 'https://jsonplaceholder.typicode.com',
-        target: "https://dummyjson.com",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
     },
   },
 });
