@@ -25,4 +25,44 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "src/shared"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          // React core
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
+            return "vendor-react";
+          }
+          // TanStack Query
+          if (id.includes("node_modules/@tanstack/react-query/")) {
+            return "vendor-query";
+          }
+          // React Hook Form
+          if (id.includes("node_modules/react-hook-form/") || id.includes("node_modules/@hookform/resolvers/")) {
+            return "vendor-form";
+          }
+          // Jotai
+          if (id.includes("node_modules/jotai/")) {
+            return "vendor-jotai";
+          }
+          // React Router
+          if (id.includes("node_modules/react-router-dom/")) {
+            return "vendor-router";
+          }
+          // Zod
+          if (id.includes("node_modules/zod/")) {
+            return "vendor-zod";
+          }
+          // Lucide Icons
+          if (id.includes("node_modules/lucide-react/")) {
+            return "vendor-icons";
+          }
+          // Catch-all for remaining node_modules
+          if (id.includes("node_modules/")) {
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
 });
