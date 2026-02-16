@@ -1,0 +1,212 @@
+{
+  "generated_at": "2026-02-17T00:00:00.000Z",
+  "nodes": [
+    {
+      "id": "Department",
+      "file": "data-definition/department.md",
+      "doc_type": "data"
+    },
+    {
+      "id": "Employee",
+      "file": "data-definition/employee.md",
+      "doc_type": "data"
+    },
+    {
+      "id": "Attendance",
+      "file": "data-definition/attendance.md",
+      "doc_type": "data"
+    },
+    {
+      "id": "1-1-직원-목록-조회",
+      "file": "feature-definition/1-1-직원-목록-조회.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "1-2-직원-상세-조회",
+      "file": "feature-definition/1-2-직원-상세-조회.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "2-1-직원-등록",
+      "file": "feature-definition/2-1-직원-등록.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "2-2-직원-수정",
+      "file": "feature-definition/2-2-직원-수정.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "3-1-근태-조회",
+      "file": "feature-definition/3-1-근태-조회.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "3-2-근태-등록",
+      "file": "feature-definition/3-2-근태-등록.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "3-3-근태-수정",
+      "file": "feature-definition/3-3-근태-수정.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "4-1-부서-트리-조회",
+      "file": "feature-definition/4-1-부서-트리-조회.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "4-2-부서별-직원-필터",
+      "file": "feature-definition/4-2-부서별-직원-필터.md",
+      "doc_type": "feature"
+    },
+    {
+      "id": "EMP-MANAGER",
+      "file": "screen-definition/EMP-MANAGER.md",
+      "doc_type": "screen"
+    },
+    {
+      "id": "EMP-LIST",
+      "file": "screen-definition/EMP-LIST.md",
+      "doc_type": "screen"
+    },
+    {
+      "id": "EMP-DETAIL",
+      "file": "screen-definition/EMP-DETAIL.md",
+      "doc_type": "screen"
+    }
+  ],
+  "edges": [
+    {
+      "from": "Department",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "Employee",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "Attendance",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "1-1-직원-목록-조회",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "1-1-직원-목록-조회",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "1-2-직원-상세-조회",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "1-2-직원-상세-조회",
+      "to": "Attendance",
+      "confidence": "high"
+    },
+    {
+      "from": "2-1-직원-등록",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "2-1-직원-등록",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "2-2-직원-수정",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "2-2-직원-수정",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "3-1-근태-조회",
+      "to": "Attendance",
+      "confidence": "high"
+    },
+    {
+      "from": "3-1-근태-조회",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "3-2-근태-등록",
+      "to": "Attendance",
+      "confidence": "high"
+    },
+    {
+      "from": "3-2-근태-등록",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "3-3-근태-수정",
+      "to": "Attendance",
+      "confidence": "high"
+    },
+    {
+      "from": "3-3-근태-수정",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "4-1-부서-트리-조회",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "4-2-부서별-직원-필터",
+      "to": "Department",
+      "confidence": "high"
+    },
+    {
+      "from": "4-2-부서별-직원-필터",
+      "to": "Employee",
+      "confidence": "high"
+    },
+    {
+      "from": "EMP-MANAGER",
+      "to": "1-1-직원-목록-조회",
+      "confidence": "high"
+    },
+    {
+      "from": "EMP-MANAGER",
+      "to": "4-1-부서-트리-조회",
+      "confidence": "high"
+    },
+    {
+      "from": "EMP-LIST",
+      "to": "1-1-직원-목록-조회",
+      "confidence": "high"
+    },
+    {
+      "from": "EMP-LIST",
+      "to": "4-2-부서별-직원-필터",
+      "confidence": "high"
+    },
+    {
+      "from": "EMP-DETAIL",
+      "to": "1-2-직원-상세-조회",
+      "confidence": "high"
+    },
+    {
+      "from": "EMP-DETAIL",
+      "to": "3-1-근태-조회",
+      "confidence": "high"
+    }
+  ]
+}
