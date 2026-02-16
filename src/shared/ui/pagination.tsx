@@ -1,7 +1,7 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui";
-import { Button } from "@/shared/ui/button";
+import { Button } from "./button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
-interface PostPaginationProps {
+interface PaginationProps {
   total: number;
   skip: number;
   limit: number;
@@ -10,7 +10,7 @@ interface PostPaginationProps {
   onNext: () => void;
 }
 
-export function PostPagination({ total, skip, limit, onChangeLimit, onPrev, onNext }: Readonly<PostPaginationProps>) {
+export function Pagination({ total, skip, limit, onChangeLimit, onPrev, onNext }: Readonly<PaginationProps>) {
   return (
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-2">

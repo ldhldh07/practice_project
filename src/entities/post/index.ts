@@ -16,6 +16,9 @@ export {
 export { postsQueryKeys } from "./model/post.keys";
 export type { PostsListParams } from "./model/post.keys";
 
+export { usePostSearchParams } from "./model/post.search-params";
+export type { PostSearchParams, SortBy, SortOrder } from "./model/post.search-params";
+
 export { postApi } from "./api/posts.api";
 
 export { PostAddDialog } from "./ui/post-add-dialog";

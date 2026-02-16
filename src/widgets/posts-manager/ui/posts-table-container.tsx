@@ -2,11 +2,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import { prefetchCommentsByPost } from "@/entities/comment";
-import { PostsTable, useSelectedPost, usePostDetailDialog } from "@/entities/post";
-import type { Post } from "@/entities/post";
+import { PostsTable, useSelectedPost, usePostDetailDialog, usePostSearchParams } from "@/entities/post";
+import type { Post, SortOrder } from "@/entities/post";
+import { useEditPostDialog, usePostActions } from "@/features/post-edit";
+import { usePostsQuery } from "@/features/post-load";
+import { useUserActions } from "@/features/user-load";
 import { splitByHighlight } from "@/shared/lib/split-by-highlight";
-
-import { usePostsQuery } from "../model/posts.query";
 
 export function PostsTableContainer() {
   const [, setSelectedPost] = useSelectedPost();

@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+export type SortBy = "none" | "id" | "title" | "reactions";
+export type SortOrder = "asc" | "desc";
+
 export interface PostSearchParams {
   skip: number;
   limit: number;

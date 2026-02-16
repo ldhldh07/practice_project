@@ -1,8 +1,7 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@shared/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 
-import { PostContent, useSelectedPost, usePostDetailDialog } from "@/entities/post";
+import { PostContent, useSelectedPost, usePostDetailDialog, usePostSearchParams } from "@/entities/post";
 import { CommentsListContainer } from "@/features/comment-edit";
-import { usePostSearchParams } from "@/features/post-filter/model/filter-post.hook";
 
 export function PostDetailDialogContainer() {
   const [selectedPost] = useSelectedPost();

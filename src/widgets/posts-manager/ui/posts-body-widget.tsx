@@ -1,10 +1,12 @@
-import { CardContent } from "@shared/ui";
+import { CardContent } from "@/shared/ui/card";
+import { Pagination } from "@/shared/ui/pagination";
 
-import { SortOrder, usePostSearchParams } from "@/features/post-filter";
-import { PostFilterContainer } from "@/features/post-filter/ui/post-filter-container";
-import { PostsTableContainer } from "@/features/post-load";
-import { usePostsQuery } from "@/features/post-load/model/posts.query.ts";
-import { PostPagination } from "@/features/post-pagination/ui/post-pagination";
+import { usePostSearchParams } from "@/entities/post";
+import type { SortOrder } from "@/entities/post";
+import { PostFilterContainer } from "@/features/post-filter";
+import { usePostsQuery } from "@/features/post-load";
+
+import { PostsTableContainer } from "./posts-table-container";
 
 export function PostsBodyWidget() {
   const { params, setParams } = usePostSearchParams();
@@ -22,7 +24,7 @@ export function PostsBodyWidget() {
       <div className="flex flex-col gap-4">
         <PostFilterContainer />
         {isFetching ? <div className="flex justify-center p-4">로딩 중...</div> : <PostsTableContainer />}
-        <PostPagination
+        <Pagination
           total={data?.total ?? 0}
           skip={params.skip}
           limit={params.limit}
