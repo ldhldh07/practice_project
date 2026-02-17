@@ -44,7 +44,6 @@ src/
 ├── features/                        # 사용자 시나리오 (비즈니스 로직)
 │   ├── department-tree/             # 부서 트리 기능
 │   ├── employee-filter/             # 직원 필터/검색 기능
-│   ├── employee-load/               # 직원 로딩 기능
 │   ├── employee-edit/               # 직원 편집 기능
 │   └── attendance-edit/             # 근태 편집 기능
 │
@@ -63,8 +62,7 @@ src/
     ├── api/client.ts                # HTTP 클라이언트
     ├── lib/
     │   ├── validate.ts              # API 검증 유틸
-    │   ├── errors/                  # 에러 코드/타입
-    │   └── form-handler.ts          # 폼 핸들러 유틸
+    │   └── errors/                  # 에러 코드/타입
     └── ui/                          # 공통 UI 컴포넌트
 ```
 
@@ -447,7 +445,7 @@ const toggleExpand = useSetAtom(toggleDepartmentExpandAtom); // write
 | 라우트 뷰 상태 | page + URL params | 히스토리/새로고침/공유 링크의 기준이 URL이기 때문 |
 
 ```ts
-// src/features/employee-load/model/employee-load.query.ts
+// src/entities/employee/model/employee.query.ts
 export const buildEmployeesQuery = (params: EmployeesParams) =>
   queryOptions({
     queryKey: employeeQueryKeys.list(params),
@@ -455,10 +453,7 @@ export const buildEmployeesQuery = (params: EmployeesParams) =>
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
-```
 
-```ts
-// src/features/employee-load/model/employees.query.ts
 export function useEmployeesQuery(params: EmployeesParams) {
   return useQuery(buildEmployeesQuery(params));
 }
@@ -484,7 +479,7 @@ await queryClient.invalidateQueries({ queryKey: employeeQueryKeys.all });
 페이지에 종속되는 뷰 상태는 URL에 두고, 도메인 상태는 atom에 두는 기준도 함께 유지했습니다.
 
 ```ts
-// src/features/employee-filter/model/employee-search-params.ts
+// src/entities/employee/model/employee-search-params.ts
 export function useEmployeeSearchParams() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -675,384 +670,38 @@ export const AppError = {
 이렇게 분리해두면, 동일한 에러 기준을 여러 화면에서 재사용할 수 있고
 UI 코드에 저수준 에러 분기(`if status === 401`)가 퍼지는 걸 막을 수 있었습니다.
 
-### 6. 페이지네이션 깜빡임 방지 (placeholderData)
+### 6. 페이지네이션 깜빡임 방지
 
-페이지 전환 시 이전 데이터가 사라지면서 화면이 깜빡이는 문제가 있었습니다.
-
-사용자가 다음 페이지로 넘어갈 때마다 빈 화면이 잠깐 보이는 건 UX 측면에서 좋지 않았고,
-특히 필터/정렬을 바꿀 때마다 목록이 사라졌다 나타나는 게 불안정해 보였습니다.
-
-이 문제는 `keepPreviousData`를 `placeholderData`로 전달해서 해결했습니다.
-
-새 데이터가 도착하기 전까지 이전 데이터를 유지하면서,
-로딩 상태는 `isLoading`이 아니라 `isFetching`으로 표현할 수 있어서
-사용자는 데이터가 바뀌는 중이라는 걸 인지하면서도 빈 화면을 보지 않게 됩니다.
-
-앞서 정의한 `buildEmployeesQuery`를 활용하면, 사용처에서 `placeholderData`만 추가하는 방식으로 깜빡임을 방지할 수 있었습니다.
-
-```ts
-// src/features/employee-load/model/employees.query.ts
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-
-export function useEmployeesQuery(params: EmployeesParams) {
-  return useQuery({
-    ...buildEmployeesQuery(params),
-    placeholderData: keepPreviousData,
-  });
-}
-```
+페이지 전환 시 이전 데이터가 사라지면서 빈 화면이 깜빡이는 문제를
+`placeholderData`로 해결했습니다.
+새 데이터가 도착하기 전까지 이전 데이터를 유지하고,
+`isFetching` 상태로 전환 중임을 표현하는 방식입니다.
 
 ### 7. navigate 전 prefetch
 
-목록에서 상세로 이동할 때 데이터 로딩 대기 시간을 제거하고 싶었습니다.
-
-사용자가 직원을 클릭하면 상세 페이지로 이동하는데,
-이동 후에 데이터를 fetch하면 로딩 스피너가 보이는 시간이 생깁니다.
-
-이 문제는 `prefetchQuery`를 navigate 전에 호출해서 해결했습니다.
-
-```ts
-// src/features/employee-load/model/employee-load.query.ts
-export const buildEmployeeDetailQuery = (employeeId: number) =>
-  queryOptions({
-    queryKey: employeeQueryKeys.detail(employeeId),
-    queryFn: () => employeeApi.getById(employeeId),
-    enabled: employeeId > 0,
-  });
-```
-
-```ts
-// src/features/employee-browse/model/use-employee-browse.ts
-const onSelect = (employee: Employee) => {
-  setSelectedEmployee(employee);
-  queryClient.prefetchQuery(buildEmployeeDetailQuery(employee.id));
-  navigate(toDetailHref(employee.id));
-};
-```
-
-`queryOptions` 패턴으로 쿼리 설정을 한 곳에서 관리하면,
+목록에서 상세로 이동할 때, navigate 직전에 `prefetchQuery`를 fire-and-forget으로 호출합니다.
+`queryOptions` 패턴으로 쿼리 설정을 한 곳에서 관리하면
 prefetch와 useQuery가 동일 설정을 재사용할 수 있어서 일관성이 유지됩니다.
 
-`prefetchQuery`는 fire-and-forget으로 호출하고 즉시 navigate하면,
-상세 페이지 도착 시 캐시에 데이터가 이미 있으므로 즉시 렌더링됩니다.
+### 8. 읽기/쓰기 구독 분리
 
-### 8. 읽기/쓰기 구독 분리 심화
+`useAtom`으로 읽기/쓰기를 함께 구독하면, setter를 안 쓰는 곳에서도 불필요한 리렌더가 발생합니다.
+entity hook에 `useAtomValue` 기반의 read-only 훅을 분리하여
+setter가 필요 없는 feature에서는 읽기 전용 구독만 유지하도록 했습니다.
 
-기존에 `useAtom`으로 읽기/쓰기를 함께 구독하던 곳에서,
-읽기만 필요한 곳은 `useAtomValue`로 전환했습니다.
+### 9. 비동기 대기 전략
 
-`const [value] = useAtom(atom)` 패턴은 구조분해만 했을 뿐 여전히 write도 구독하므로 리렌더가 발생합니다.
-
-이 문제를 해결하기 위해 entity hook에 read-only 전용 훅을 추가했습니다.
-
-```ts
-// src/entities/employee/model/employee.hook.ts
-// 기존: 읽기/쓰기 함께
-export function useSelectedEmployee(): [Employee | null, (employee: Employee | null) => void] {
-  return useAtom(selectedEmployeeAtom);
-}
-
-// 추가: 읽기 전용
-export function useSelectedEmployeeValue(): Employee | null {
-  return useAtomValue(selectedEmployeeAtom);
-}
-```
-
-```ts
-// src/features/employee-edit/model/edit-employee.hook.ts
-// before: const [selectedEmployee] = useSelectedEmployee(); // write도 구독
-// after:
-const selectedEmployee = useSelectedEmployeeValue(); // read만 구독
-```
-
-이 패턴을 6개 feature 파일에 적용했고,
-setter가 필요 없는 곳에서는 불필요한 구독을 제거할 수 있었습니다.
-
-### 9. 비동기 대기 전략 (fire-and-forget)
-
-optimistic update가 있는 mutation에서 `await mutateAsync` 대신 `mutate`를 사용했습니다.
-
-다이얼로그가 서버 응답을 기다리지 않고 즉시 닫히면 UX 반응성이 향상됩니다.
-
-에러 발생 시 `onError` 콜백에서 롤백 처리하면 되므로,
-사용자는 빠른 피드백을 받으면서도 실패 케이스를 놓치지 않습니다.
-
-```ts
-// src/features/employee-edit/model/edit-employee.hook.ts
-// before
-const handleSubmit = createModalFormHandler(form, async (data) => {
-  await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
-  setIsEditOpen(false);
-});
-
-// after
-const handleSubmit = form.handleSubmit((data) => {
-  if (!selectedEmployee) return;
-  updateMutation.mutate({ employeeId: selectedEmployee.id, params: data });
-  setIsEditOpen(false);
-});
-```
-
-`form.handleSubmit` 콜백 안에서 `mutate` + 즉시 close/reset 패턴을 사용하면,
-사용자는 제출 후 바로 다음 작업을 이어갈 수 있어서 체감 속도가 빨라졌습니다.
+다이얼로그 mutation에서 `await mutateAsync` 대신 `mutate`(fire-and-forget)를 사용했습니다.
+서버 응답을 기다리지 않고 즉시 닫히므로 UX 반응성이 향상되고,
+에러는 `onError` 콜백에서 롤백 처리합니다.
 
 ### 10. 번들 청크 최적화
 
-Vite 빌드 시 단일 vendor 청크가 500KB를 초과하는 경고가 발생했습니다.
+단일 vendor 청크가 500KB를 초과하여 `manualChunks`로 라이브러리별 독립 청크를 분리했습니다.
+변경 빈도가 다른 코드를 같은 파일에 넣으면 한 줄 고쳐도 전체를 다시 받아야 하므로,
+react, query, form, jotai, zod, icons를 독립 청크로 분리하여 캐시 히트율을 높였습니다.
 
-`manualChunks`로 라이브러리별 독립 청크를 분리하면,
-라이브러리 업데이트 시 해당 청크만 캐시 무효화되므로 사용자 재다운로드가 최소화됩니다.
-
-```ts
-// vite.config.ts
-build: {
-  rollupOptions: {
-    output: {
-      manualChunks: (id) => {
-        if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
-          return "vendor-react";
-        }
-        if (id.includes("node_modules/@tanstack/react-query/")) {
-          return "vendor-query";
-        }
-        if (id.includes("node_modules/react-hook-form/") || id.includes("node_modules/@hookform/resolvers/")) {
-          return "vendor-form";
-        }
-        if (id.includes("node_modules/jotai/")) {
-          return "vendor-jotai";
-        }
-        if (id.includes("node_modules/zod/")) {
-          return "vendor-zod";
-        }
-        if (id.includes("node_modules/lucide-react/")) {
-          return "vendor-icons";
-        }
-        if (id.includes("node_modules/")) {
-          return "vendor";
-        }
-      },
-    },
-  },
-},
-```
-
-이렇게 분리한 결과 최대 청크 크기가 502KB에서 220KB로 감소했고,
-React나 Query 같은 안정적인 라이브러리는 캐시 히트율이 높아져서
-배포 후 사용자 로딩 시간이 줄어들었습니다.
-
-### 11. 시맨틱 HTML 태그 적용
-
-시맨틱 태그는 시각적으로는 `<div>`와 차이가 없지만,
-스크린 리더와 검색 엔진이 페이지 구조를 이해하는 데 도움을 줍니다.
-
-이번 프로젝트에서는 접근성과 SEO를 고려해 10개 파일에서 `<div>`를 시맨틱 태그로 교체했습니다.
-
-#### 1. Form 다이얼로그: `<form>` 래핑
-
-```tsx
-// src/shared/ui/form-dialog.tsx
-// before
-<div>
-  <DialogHeader>...</DialogHeader>
-  <div className="grid gap-4 py-4">{children}</div>
-  <DialogFooter>
-    <Button type="submit">저장</Button>
-  </DialogFooter>
-</div>
-
-// after
-<form onSubmit={handleSubmit}>
-  <DialogHeader>...</DialogHeader>
-  <div className="grid gap-4 py-4">{children}</div>
-  <DialogFooter>
-    <Button type="submit">저장</Button>
-  </DialogFooter>
-</form>
-```
-
-`<form>` 태그로 감싸면 Enter 키 제출이 자동으로 동작하고,
-브라우저 내장 폼 검증 기능도 활용할 수 있어서 UX가 개선됩니다.
-
-#### 2. 검색 필터: `<search>` 랜드마크
-
-```tsx
-// src/entities/employee/ui/employee-filter.tsx
-// before
-<div className="flex gap-2">
-  <Input placeholder="이름, 이메일, 전화번호로 검색" />
-  <Select>...</Select>
-</div>
-
-// after
-<search className="flex gap-2">
-  <Input placeholder="이름, 이메일, 전화번호로 검색" />
-  <Select>...</Select>
-</search>
-```
-
-`<search>` 태그는 스크린 리더가 검색 영역임을 인식하도록 도와줍니다.
-
-#### 3. 레이아웃 구조: `<aside>` + `<section>`
-
-```tsx
-// src/widgets/employee-manager/ui/employee-body-widget.tsx
-// before
-<div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-  <div className="border rounded-md">
-    <DepartmentTreeContainer />
-  </div>
-  <div>
-    <EmployeeBrowsePanel />
-  </div>
-</div>
-
-// after
-<div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-  <aside className="border rounded-md">
-    <DepartmentTreeContainer />
-  </aside>
-  <section>
-    <EmployeeBrowsePanel />
-  </section>
-</div>
-```
-
-`<aside>`는 사이드바 영역을, `<section>`은 메인 콘텐츠 영역을 명시적으로 표현합니다.
-
-#### 4. 페이지네이션: `<nav>` + `aria-label`
-
-```tsx
-// src/shared/ui/pagination.tsx
-// before
-<div className="flex items-center gap-2">
-  <Button>이전</Button>
-  <Button>다음</Button>
-</div>
-
-// after
-<nav aria-label="페이지 이동" className="flex items-center gap-2">
-  <Button>이전</Button>
-  <Button>다음</Button>
-</nav>
-```
-
-`<nav>` 태그는 네비게이션 랜드마크로 인식되고,
-`aria-label`은 스크린 리더에 "페이지 이동" 컨텍스트를 제공합니다.
-
-#### 5. 텍스트 콘텐츠: `<p>` + `<span>`
-
-```tsx
-// before
-<div className="text-center text-muted-foreground">데이터가 없습니다</div>
-
-// after
-<p className="text-center text-muted-foreground">데이터가 없습니다</p>
-```
-
-텍스트 블록은 `<p>`, 인라인 요소는 `<span>`으로 구분하면
-문서 구조가 명확해지고 스타일 적용 의도도 분명해집니다.
-
-이렇게 시맨틱 태그를 적용한 결과,
-화면 렌더링은 동일하지만 접근성 도구와 검색 엔진이 페이지 구조를 더 정확하게 파악할 수 있게 되었습니다.
-
-### 12. Container-Presenter 패턴과 핸들러 prop 의미론
-
-프로젝트 전반에 Container-Presenter 패턴을 적용했지만,
-코드 리뷰 중 직원 상세 패널과 다이얼로그에서 동일한 버튼 구조가 중복된 걸 발견했습니다.
-
-두 곳 모두 "직원 정보 수정", "근태 추가", "선택 근태 수정" 버튼을 인라인으로 렌더링하고 있었고,
-각각 `setIsEditEmployeeOpen(true)` 같은 setter 호출을 직접 포함하고 있었습니다.
-
-이 문제를 해결하기 위해 `EmployeeActionBar` entity presenter를 추출했습니다.
-
-#### Before: 인라인 버튼 중복
-
-```tsx
-// src/features/employee-detail/ui/employee-detail-panel.tsx (before)
-<div className="flex gap-2">
-  <Button variant="outline" size="sm" onClick={() => setIsEditEmployeeOpen(true)}>
-    <Pencil />
-    직원 정보 수정
-  </Button>
-  <Button variant="outline" size="sm" onClick={() => setIsAddAttendanceOpen(true)}>
-    <Plus />
-    근태 추가
-  </Button>
-  <Button variant="outline" size="sm" disabled={!selectedAttendance} onClick={() => setIsEditAttendanceOpen(true)}>
-    <Pencil />
-    선택 근태 수정
-  </Button>
-</div>
-```
-
-이 코드는 다이얼로그 컨테이너에도 거의 동일하게 존재했습니다.
-
-#### After: Entity Presenter 추출
-
-```tsx
-// src/entities/employee/ui/employee-action-bar.tsx
-type EmployeeActionBarProps = {
-  onEditEmployee: () => void;
-  onAddAttendance: () => void;
-  onEditAttendance: () => void;
-  canEditAttendance: boolean;
-};
-
-export function EmployeeActionBar({
-  onEditEmployee,
-  onAddAttendance,
-  onEditAttendance,
-  canEditAttendance,
-}: Readonly<EmployeeActionBarProps>) {
-  return (
-    <div className="flex gap-2">
-      <Button variant="outline" size="sm" onClick={onEditEmployee}>
-        <Pencil className="h-4 w-4" />
-        직원 정보 수정
-      </Button>
-      <Button variant="outline" size="sm" onClick={onAddAttendance}>
-        <Plus className="h-4 w-4" />
-        근태 추가
-      </Button>
-      <Button variant="outline" size="sm" disabled={!canEditAttendance} onClick={onEditAttendance}>
-        <Pencil className="h-4 w-4" />
-        선택 근태 수정
-      </Button>
-    </div>
-  );
-}
-```
-
-```tsx
-// src/features/employee-detail/ui/employee-detail-panel.tsx (after)
-<EmployeeActionBar
-  onEditEmployee={() => setIsEditEmployeeOpen(true)}
-  onAddAttendance={() => setIsAddAttendanceOpen(true)}
-  onEditAttendance={() => setIsEditAttendanceOpen(true)}
-  canEditAttendance={!!selectedAttendance}
-/>
-```
-
-#### 핸들러 prop 의미론 원칙
-
-이 과정에서 중요했던 건 핸들러 prop 이름을 "구현이 아닌 의미"로 짓는 것이었습니다.
-
-- ❌ `onSetEditOpen`: 구현 세부사항을 드러냄
-- ✅ `onEditEmployee`: 사용자 의도를 표현
-
-Entity UI는 "무엇을 할지"만 알고, "어떻게 할지"는 container가 결정합니다.
-
-같은 버튼 구조가 다이얼로그와 패널에서 중복되었는데,
-presenter로 추출하면 한 곳에서 관리할 수 있고 수정 포인트가 줄어듭니다.
-
-`canEditAttendance`처럼 조건부 상태도 boolean prop으로 전달하면
-presenter가 순수하게 유지되고 테스트하기도 쉬워집니다.
-
-이렇게 분리한 결과,
-버튼 레이아웃이나 아이콘을 바꿀 때 entity UI 한 곳만 수정하면 되고,
-feature container는 비즈니스 로직(어떤 다이얼로그를 열지)에만 집중할 수 있게 되었습니다.
-
-### 13. Entity Hook 래핑과 직접 Atom Export의 트레이드오프
+### 11. Entity Hook 래핑과 직접 Atom Export의 트레이드오프
 
 이 프로젝트를 진행하면서 entity 레이어에서 atom을 다루는 방식에 일관성이 없다는 걸 발견했습니다.
 
@@ -1184,7 +833,7 @@ entity hook 래핑의 실익이 적었습니다.
 이 프로젝트에서는 employee/attendance처럼 단순한 상태는 hook으로 래핑하고,
 department처럼 복잡한 atom 그래프는 직접 export하는 방식으로 가져갔습니다.
 
-### 14. 스펙 기반 개발과 의존성 탐색
+### 12. 스펙 기반 개발과 의존성 탐색
 
 이 프로젝트를 진행하면서 코드와 요구사항이 분리되면 자연스럽게 드리프트가 생긴다는 걸 경험했습니다.
 
@@ -1349,176 +998,7 @@ export const employeeSchema = z.object({
 이 프로젝트에서는 스펙을 수동으로 관리하고 있지만,
 향후 Notion 동기화나 자동 생성으로 확장할 수 있는 기반을 마련했습니다.
 
-### 15. 유틸 함수 카탈로그와 중복 방지
-
-프로젝트가 커지면서 `shared/lib`에 유틸 함수가 늘어나기 시작했습니다.
-
-처음에는 필요한 유틸을 만들 때마다 "이미 있는 건 아닐까"라고 grep으로 찾아봤는데,
-프로젝트 규모가 커질수록 이 방식은 비효율적이었습니다.
-
-특히 새로운 팀원이 합류했을 때 "어떤 유틸이 있는지" 알 수 없어서
-중복 구현이 생기거나 불필요한 유틸을 새로 만드는 일이 반복되었습니다.
-
-#### 카테고리 주석을 통한 유틸 카탈로그
-
-이 문제를 해결하기 위해 `src/shared/lib/index.ts`에 카테고리 주석을 달아서
-barrel export 자체를 유틸 목록으로 만들었습니다.
-
-```ts
-// src/shared/lib/index.ts
-
-// --- Utility ---
-export { cn } from "./cn";
-
-// --- Text ---
-export { splitByHighlight, type HighlightSegment } from "./split-by-highlight";
-
-// --- Form ---
-export { createModalFormHandler } from "./form-handler";
-
-// --- Validation ---
-export { validateSchema } from "./validate";
-
-// --- Environment ---
-export { BASE_URL } from "./env";
-
-// --- Errors ---
-export {
-  BaseError,
-  ApiError,
-  NotFoundError,
-  BadRequestError,
-  NetworkError,
-  TimeoutError,
-  ValidationError,
-  ResponseParseError,
-  AppError,
-} from "./errors";
-
-export {
-  API_ERROR_CODES,
-  CLIENT_ERROR_CODES,
-  NETWORK_ERROR_CODES,
-  ERROR_CODES,
-  ERROR_MESSAGES,
-  getErrorMessage,
-  type ApiErrorCode,
-  type ClientErrorCode,
-  type NetworkErrorCode,
-  type ErrorCode,
-} from "./errors";
-```
-
-이렇게 카테고리를 명시하면:
-
-- 새 유틸을 추가할 때 barrel export를 먼저 확인하면 중복 구현을 방지할 수 있습니다.
-- 코드 리뷰 시에도 "이미 있는 유틸인데 새로 만들었네"를 쉽게 체크할 수 있습니다.
-- 팀원이 프로젝트에 합류했을 때 `src/shared/lib/index.ts`를 보면 "어떤 유틸이 있는지" 한눈에 파악 가능합니다.
-
-#### 6개 카테고리 구조
-
-현재 프로젝트의 유틸은 다음 6개 카테고리로 정리되어 있습니다.
-
-**Utility**: 범용 유틸리티
-
-- `cn`: classname 병합 (tailwind 호환)
-
-**Text**: 텍스트 처리
-
-- `splitByHighlight`: 검색 키워드 기준으로 텍스트 분할
-
-**Form**: 폼 관련 유틸
-
-- `createModalFormHandler`: 다이얼로그 폼 제출 핸들러
-
-**Validation**: 검증 유틸
-
-- `validateSchema`: zod 스키마 검증 및 에러 변환
-
-**Environment**: 환경 설정
-
-- `BASE_URL`: API 기본 URL
-
-**Errors**: 에러 타입 및 코드
-
-- `BaseError`, `ApiError`, `ValidationError` 등 에러 클래스
-- `ERROR_CODES`, `ERROR_MESSAGES` 등 에러 상수
-
-#### shared/index.ts 보강
-
-기존에는 `errors/`와 `env.ts`가 `shared/index.ts`에서 re-export 되지 않아서,
-feature에서 `@/shared/lib/errors`로 직접 import해야 했습니다.
-
-이번에 `shared/index.ts`에 errors와 env를 추가해서
-`@/shared`에서 직접 import 가능하도록 보강했습니다.
-
-```ts
-// src/shared/index.ts
-
-// 기존 UI 컴포넌트들...
-export { Badge } from "./ui/badge";
-export { Button } from "./ui/button";
-// ...
-
-// 기존 API 클라이언트...
-export { createHttpClient, type HttpClient } from "./api/client";
-
-// lib 유틸들
-export { cn } from "./lib/cn";
-export { splitByHighlight, type HighlightSegment } from "./lib/split-by-highlight";
-export { createModalFormHandler } from "./lib/form-handler";
-export { validateSchema } from "./lib/validate";
-
-// Errors (새로 추가)
-export {
-  BaseError,
-  ApiError,
-  NotFoundError,
-  BadRequestError,
-  NetworkError,
-  TimeoutError,
-  ValidationError,
-  ResponseParseError,
-  AppError,
-} from "./lib/errors";
-
-export {
-  API_ERROR_CODES,
-  CLIENT_ERROR_CODES,
-  NETWORK_ERROR_CODES,
-  ERROR_CODES,
-  ERROR_MESSAGES,
-  getErrorMessage,
-  type ApiErrorCode,
-  type ClientErrorCode,
-  type NetworkErrorCode,
-  type ErrorCode,
-} from "./lib/errors";
-
-// Environment (새로 추가)
-export { BASE_URL } from "./lib/env";
-```
-
-이렇게 하면:
-
-- `@/shared`에서 모든 공통 유틸을 import 가능
-- 기존 `@/shared/lib/errors` 경로도 여전히 동작 (호환성 유지)
-- feature에서 import 경로를 통일할 수 있음
-
-#### 중복 방지 효과
-
-이 구조의 실제 효과는:
-
-1. **새 유틸 추가 전 체크**: barrel export를 보면 "이미 있는 건 아닐까" 판단 가능
-2. **코드 리뷰 기준 명확화**: "이 유틸이 이미 있는데 왜 새로 만들었나"를 쉽게 지적 가능
-3. **팀 온보딩 가속화**: 신입이 프로젝트 합류 시 `src/shared/lib/index.ts`를 보면 "어떤 유틸이 있는지" 빠르게 파악
-
-특히 프로젝트가 커질수록 이 카탈로그의 가치가 높아집니다.
-
-유틸이 50개, 100개로 늘어나도 barrel export의 카테고리 주석만 보면
-"Text 처리는 이미 `splitByHighlight`가 있으니 새로 만들 필요 없겠네"라고 판단할 수 있기 때문입니다.
-
-### 16. 테스트 전략과 검증 경계
+### 13. 테스트 전략과 검증 경계
 
 테스트를 작성하면서 가장 먼저 부딪힌 질문은 "무엇을 테스트하고 무엇을 테스트하지 않을지"였습니다.
 
@@ -1527,132 +1007,19 @@ export { BASE_URL } from "./lib/env";
 테스트로 다시 확인하는 경우가 생겼습니다.
 이 중복을 줄이는 것이 테스트 전략의 핵심이었습니다.
 
-#### LSP와 Zod가 이미 커버하는 영역
+TypeScript와 Zod가 빌드 타임에 이미 검증하는 영역(스키마 매칭, 타입 계약, import 경계)은 테스트에서 제외하고,
+런타임에서만 확인할 수 있는 영역에 집중했습니다.
 
-TypeScript 컴파일러(LSP)와 Zod 스키마는 빌드 타임에 다음을 이미 검증합니다.
+- **단위테스트**: 순수 함수의 동작 정확성 (트리 변환, 텍스트 분할, 에러 분류)
+- **통합테스트**: atom 파생 체인의 연쇄 동작, API 경계에서의 에러 변환 체인
 
-- 스키마 필드명과 타입 매칭
-- 인터페이스 정합성과 타입 계약
-- import 경계와 모듈 의존성
-
-이것들은 빌드가 통과하는 순간 이미 검증된 것이므로,
-테스트로 다시 확인하는 건 유지보수 비용만 늘리는 중복이었습니다.
-
-반면 테스트가 실질적으로 필요한 영역은 따로 있었습니다.
-
-- 순수 함수의 동작 정확성 (입력 → 출력 변환 로직)
-- atom 파생 체인의 연쇄 동작 (source → derived → filtered)
-- API 경계에서의 에러 변환 체인 (fetch → validateSchema → ValidationError)
-
-이 기준으로 테스트 범위를 좁히니 테스트 수는 줄었지만 유지보수 비용도 함께 줄었습니다.
-
-#### 단위테스트와 통합테스트 구분
-
-이 기준을 바탕으로 테스트를 두 종류로 나누었습니다.
-
-**단위테스트**: 입력 → 출력이 명확한 순수 함수를 대상으로 합니다.
-tree 변환, 텍스트 분할, 에러 분류처럼 외부 의존성 없이 동작하는 함수들입니다.
-
-```ts
-// src/entities/department/model/spec/department.tree.test.ts
-describe("buildDepartmentTree", () => {
-  it("flat 배열을 parentId 기준으로 트리 구조로 변환한다", () => {
-    const flat = [
-      { id: 1, name: "본부", parentId: null },
-      { id: 2, name: "개발팀", parentId: 1 },
-    ];
-    const tree = buildDepartmentTree(flat);
-    expect(tree).toHaveLength(1);
-    expect(tree[0].children).toHaveLength(1);
-  });
-});
-```
-
-**통합테스트**: 여러 모듈이 연결되는 체인을 대상으로 합니다.
-atom 파생 체인과 API 경계 변환처럼 모듈 간 협력이 핵심인 경우입니다.
-
-```ts
-// src/entities/department/model/spec/department-tree.atom.test.ts
-describe("department atom 파생 체인", () => {
-  it("source → tree → visible 체인이 검색 필터를 반영한다", () => {
-    const store = createStore();
-    store.set(departmentSourceAtom, departments);
-    store.set(departmentTreeSearchAtom, "개발");
-    const visible = store.get(visibleDepartmentTreeAtom);
-    expect(visible.every(matchesKeyword("개발"))).toBe(true);
-  });
-});
-```
-
-```ts
-// src/entities/employee/api/spec/employee.api.test.ts
-describe("employee API 경계", () => {
-  it("스키마 불일치 시 ValidationError로 변환된다", async () => {
-    vi.stubGlobal("fetch", () => Response.json({ invalid: true }));
-    await expect(employeeApi.getList(params)).rejects.toThrow(ValidationError);
-  });
-});
-```
-
-#### FSD `spec/` 서브폴더 배치 근거
-
-테스트 파일을 어디에 둘지도 고민이었습니다.
-
-프로젝트 루트에 `__tests__/`를 두는 방식도 있지만,
-FSD Discussion #435에서 메인테이너 illright가 다음과 같이 답변한 내용을 참고했습니다.
-
-> "TL;DR: Put them in segments next to the code that they are testing."
-> "placing your tests in a `spec` or `tests/` folder inside each segment"
-
-co-location이 핵심이었습니다.
-테스트 파일이 테스트 대상 코드 바로 옆에 있으면,
-파일을 이동할 때 테스트도 함께 이동하고 세그먼트를 삭제할 때 테스트도 함께 삭제됩니다.
-FSD 공식 린터인 Steiger도 이 구조를 경고하지 않습니다.
-
-각 세그먼트 안에 `spec/` 폴더를 두는 방식으로 배치했습니다.
-
-```
-src/entities/department/model/
-├── department.tree.ts              # 소스
-├── department-tree.atom.ts         # 소스
-└── spec/
-    ├── department.tree.test.ts     # 단위테스트
-    └── department-tree.atom.test.ts # 통합테스트
-```
-
-루트 `__tests__/` 대비 장점은 명확했습니다.
+테스트 파일은 FSD co-location 원칙에 따라 각 세그먼트 안에 `spec/` 폴더를 두어 배치했습니다.
 파일 이동 시 테스트도 함께 이동하고, 세그먼트 삭제 시 테스트도 함께 삭제되어
-테스트와 소스 코드 사이의 드리프트가 생기지 않았습니다.
+소스와 테스트 사이의 드리프트가 생기지 않습니다.
 
-#### 테스트 수치 요약
+"테스트를 많이 작성하는 것"보다 "검증 도구별 역할을 나누는 것"이 유지보수에 더 효과적이었습니다.
 
-현재 프로젝트의 테스트 현황은 다음과 같습니다.
-
-- 8개 테스트 파일, 139개 테스트 케이스
-- 단위테스트 83개 (순수 함수 동작 검증)
-- 통합테스트 56개 (atom 체인 + API 경계 검증)
-- 실행 시간 약 1.2초
-
-각 파일별 분포는 다음과 같습니다.
-
-| 파일                                                          | 테스트 수 | 종류 |
-| ------------------------------------------------------------- | --------- | ---- |
-| `entities/department/model/spec/department.tree.test.ts`      | 19        | 단위 |
-| `entities/department/model/spec/department-tree.atom.test.ts` | 27        | 통합 |
-| `entities/employee/api/spec/employee.api.test.ts`             | 13        | 통합 |
-| `entities/attendance/api/spec/attendance.api.test.ts`         | 11        | 통합 |
-| `shared/lib/spec/split-by-highlight.test.ts`                  | 17        | 단위 |
-| `shared/lib/errors/spec/errors.test.ts`                       | 47        | 단위 |
-| `shared/api/spec/client.test.ts`                              | 3         | 통합 |
-| `shared/lib/spec/validate.test.ts`                            | 2         | 단위 |
-
-이 기준을 세운 결과, "테스트를 많이 작성하는 것"보다 "검증 도구별 역할을 나누는 것"이 유지보수에 더 효과적이었습니다.
-
-TypeScript와 Zod가 이미 커버하는 영역은 테스트에서 제외하고,
-런타임에서만 확인할 수 있는 동작 정확성과 모듈 간 협력에 집중하니
-테스트 코드 자체의 유지보수 부담이 줄어들었습니다.
-
-### 17. 서버 SSOT와 클라이언트 도메인 로직의 경계
+### 14. 서버 SSOT와 클라이언트 도메인 로직의 경계
 
 HR 서비스의 프론트엔드를 개발하면서 가장 중요한 판단 중 하나는 "도메인 로직을 어디서 실행할 것인가"였습니다.
 
