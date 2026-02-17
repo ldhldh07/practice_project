@@ -4,6 +4,7 @@ export type { AttendanceListResponse, CreateAttendanceParams, UpdateAttendancePa
 
 export { attendanceApi } from "./api/attendance.api";
 export { attendanceQueryKeys } from "./model/attendance.keys";
+export { buildAttendanceByEmployeeQuery, useAttendanceByEmployeeQuery } from "./model/attendance.query";
 
 export {
   useSelectedAttendanceValue,

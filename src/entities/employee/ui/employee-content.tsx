@@ -1,15 +1,11 @@
 import { Badge } from "@/shared/ui/badge";
 
+import { EMPLOYEE_STATUS_CONFIG } from "../model/employee-status";
+
 import type { Employee } from "../model/employee.types";
 
 type EmployeeContentProps = {
   employee: Employee | null;
-};
-
-const STATUS_CONFIG: Record<Employee["status"], { label: string; variant: "success" | "warning" | "destructive" }> = {
-  active: { label: "재직", variant: "success" },
-  onLeave: { label: "휴직", variant: "warning" },
-  resigned: { label: "퇴사", variant: "destructive" },
 };
 
 function InfoItem({ label, value }: Readonly<{ label: string; value: string | number }>) {
@@ -33,7 +29,7 @@ export function EmployeeContent({ employee }: Readonly<EmployeeContentProps>) {
     );
   }
 
-  const status = STATUS_CONFIG[employee.status];
+  const status = EMPLOYEE_STATUS_CONFIG[employee.status];
 
   return (
     <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">

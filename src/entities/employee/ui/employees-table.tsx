@@ -1,17 +1,13 @@
 import { Badge } from "@/shared/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 
+import { EMPLOYEE_STATUS_CONFIG } from "../model/employee-status";
+
 import type { Employee } from "../model/employee.types";
 
 type EmployeesTableProps = {
   employees: Employee[];
   onSelect: (employee: Employee) => void;
-};
-
-const STATUS_CONFIG: Record<Employee["status"], { label: string; variant: "success" | "warning" | "destructive" }> = {
-  active: { label: "재직", variant: "success" },
-  onLeave: { label: "휴직", variant: "warning" },
-  resigned: { label: "퇴사", variant: "destructive" },
 };
 
 export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableProps>) {
@@ -40,7 +36,7 @@ export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableP
       </TableHeader>
       <TableBody>
         {employees.map((employee) => {
-          const status = STATUS_CONFIG[employee.status];
+          const status = EMPLOYEE_STATUS_CONFIG[employee.status];
           return (
             <TableRow
               key={employee.id}

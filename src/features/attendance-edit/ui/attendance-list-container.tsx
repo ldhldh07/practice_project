@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-
-import { AttendanceList, attendanceApi, attendanceQueryKeys, useSetSelectedAttendance } from "@/entities/attendance";
+import { AttendanceList, useAttendanceByEmployeeQuery, useSetSelectedAttendance } from "@/entities/attendance";
 
 type AttendanceListContainerProps = {
   employeeId: number;
@@ -9,11 +7,7 @@ type AttendanceListContainerProps = {
 export function AttendanceListContainer({ employeeId }: Readonly<AttendanceListContainerProps>) {
   const setSelectedAttendance = useSetSelectedAttendance();
 
-  const { data } = useQuery({
-    queryKey: attendanceQueryKeys.byEmployee(employeeId),
-    queryFn: () => attendanceApi.getByEmployee(employeeId),
-    enabled: employeeId > 0,
-  });
+  const { data } = useAttendanceByEmployeeQuery(employeeId);
 
   const attendance = data?.attendance ?? [];
 
