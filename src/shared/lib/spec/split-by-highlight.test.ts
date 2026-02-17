@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { splitByHighlight } from "./split-by-highlight";
+import { splitByHighlight } from "../split-by-highlight";
 
 describe("splitByHighlight", () => {
   it("returns empty array when text is empty", () => {

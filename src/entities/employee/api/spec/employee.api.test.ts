@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ValidationError } from "@/shared/lib/errors";
 
-import { employeeApi } from "./employee.api";
+import { employeeApi } from "../employee.api";
 
-import type { EmployeesParams } from "./employee.api";
+import type { EmployeesParams } from "../employee.api";
 
 function jsonResponse(data: unknown, init?: ResponseInit) {
   return new Response(JSON.stringify(data), {

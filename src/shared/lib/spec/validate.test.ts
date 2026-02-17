@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { ValidationError } from "./errors";
-import { validateSchema } from "./validate";
+import { ValidationError } from "../errors";
+import { validateSchema } from "../validate";
 
 describe("validateSchema", () => {
   const userSchema = z.object({

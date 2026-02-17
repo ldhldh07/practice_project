@@ -1,7 +1,7 @@
 import { createStore } from "jotai";
 import { describe, expect, it } from "vitest";
 
-import type { Department } from "./department.types";
+import type { Department } from "../department.types";
 import {
   departmentSourceAtom,
   departmentTreeAtom,
@@ -12,7 +12,7 @@ import {
   selectedDepartmentIdAtom,
   toggleDepartmentExpandAtom,
   visibleDepartmentTreeAtom,
-} from "./department-tree.atom";
+} from "../department-tree.atom";
 
 describe("department-tree.atom integration", () => {
   const mockDepartments: Department[] = [

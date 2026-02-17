@@ -10,8 +10,8 @@ import {
   ResponseParseError,
   TimeoutError,
   ValidationError,
-} from "./errors";
-import { ERROR_CODES, getErrorMessage } from "./error-codes";
+} from "../errors";
+import { ERROR_CODES, getErrorMessage } from "../error-codes";
 
 describe("Error Class Hierarchy", () => {
   describe("BaseError", () => {

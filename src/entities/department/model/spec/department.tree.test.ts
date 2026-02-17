@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { Department, DepartmentTreeNode } from "./department.types";
-import { buildDepartmentTree, findDescendantDepartmentIds, flattenDepartmentTree } from "./department.tree";
+import type { Department, DepartmentTreeNode } from "../department.types";
+import { buildDepartmentTree, findDescendantDepartmentIds, flattenDepartmentTree } from "../department.tree";
 
 describe("buildDepartmentTree", () => {
   it("returns empty array when input is empty", () => {
