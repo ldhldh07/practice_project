@@ -1651,3 +1651,94 @@ src/entities/department/model/
 TypeScript와 Zod가 이미 커버하는 영역은 테스트에서 제외하고,
 런타임에서만 확인할 수 있는 동작 정확성과 모듈 간 협력에 집중하니
 테스트 코드 자체의 유지보수 부담이 줄어들었습니다.
+
+### 17. 서버 SSOT와 클라이언트 도메인 로직의 경계
+
+HR 서비스의 프론트엔드를 개발하면서 가장 중요한 판단 중 하나는 "도메인 로직을 어디서 실행할 것인가"였습니다.
+
+급여 계산, 상태 전이, 권한 정책처럼 복잡한 도메인에서는 프론트가 도메인 규칙을 직접 판단하지 않고,
+서버 응답을 해석하여 UI로 전환하는 것이 원칙입니다.
+서버가 단일 진실 공급원(Single Source of Truth)으로서 도메인 계산을 수행하고,
+클라이언트는 그 결과를 받아 렌더링에만 집중하는 구조입니다.
+
+#### 현재 프로젝트에서 클라이언트가 수행하는 도메인 계산
+
+이 프로젝트에서는 두 가지 도메인 계산을 클라이언트에서 직접 수행하고 있습니다.
+
+1. **flat 부서 배열 → 트리 구조 변환** (`buildDepartmentTree`)
+2. **선택 부서의 하위 부서 ID 계산 → 직원 필터링** (`findDescendantDepartmentIds` + `selectedDepartmentDescendantsAtom`)
+
+```ts
+// 1. 서버에서 flat 배열을 받아 클라이언트가 트리로 변환
+export const departmentTreeAtom = atom((get) => {
+  return buildDepartmentTree(get(departmentSourceAtom));
+});
+
+// 2. 선택 부서의 하위 부서를 클라이언트가 계산하여 직원 목록 필터링에 사용
+export const selectedDepartmentDescendantsAtom = atom((get) => {
+  const selectedId = get(selectedDepartmentIdAtom);
+  if (!selectedId) return [];
+  return findDescendantDepartmentIds(get(departmentTreeAtom), selectedId);
+});
+```
+
+이 파생 atom들은 `useDepartmentTree()`를 통해 feature 레이어에 노출되고,
+`useEmployeeListQuery()`에서 `selectedDescendants`를 `departmentIds`로 전달하는 방식으로 직원 필터링에 활용됩니다.
+
+#### 왜 실제 서비스에서는 서버가 이 계산을 담당해야 하는지
+
+실제 HR 서비스에서는 이 로직을 서버가 수행해야 하는 이유가 명확합니다.
+
+**데이터 의존성 일관성**: 부서 트리 구조가 바뀌면 급여, 근태, 평가에 연쇄적으로 영향을 줍니다.
+서버가 계산을 담당해야 여러 도메인에 걸친 정합성이 깨지지 않습니다.
+
+**정책 변화 흡수**: 부서 이동이나 조직 개편은 정책적 결정입니다.
+프론트가 트리를 재구성하면 정책이 바뀔 때마다 클라이언트 코드를 수정해야 합니다.
+
+**서버 계약 모델**: 이상적으로는 서버가 `allowedActions`, `capabilities` 같은 계약을 응답에 포함하고,
+프론트는 "해석과 렌더링"만 담당하는 구조가 됩니다.
+
+서버가 트리를 직접 내려주는 구조로 전환하면 클라이언트 코드는 다음처럼 단순해집니다.
+
+```ts
+// Before: 클라이언트가 도메인 계산
+const departmentTreeAtom = atom((get) => buildDepartmentTree(get(departmentSourceAtom)));
+const selectedDepartmentDescendantsAtom = atom((get) => {
+  return findDescendantDepartmentIds(get(departmentTreeAtom), get(selectedDepartmentIdAtom));
+});
+
+// After: 서버가 트리를 내려주면 클라이언트는 저장만
+const departmentTreeSourceAtom = atom<DepartmentTreeNode[]>([]); // 서버 응답 그대로
+// 직원 필터링도 departmentId 하나만 보내면 서버가 하위까지 포함하여 처리
+```
+
+#### 현재 구조가 전환에 유연한 이유
+
+이 프로젝트의 구조는 서버 주도로 전환할 때 수정 범위가 예측 가능하도록 설계되어 있습니다.
+
+**도메인 계산이 entity 레이어에 격리되어 있습니다.**
+`buildDepartmentTree`와 `findDescendantDepartmentIds`는 `entities/department/model`에만 존재합니다.
+서버로 이전해도 feature, widget, page는 수정할 필요가 없습니다.
+
+**atom 파생 체인이 명확합니다.**
+source → derived → action 구조가 일관적이라서,
+source의 데이터 형태만 바꾸면(flat 배열 → 트리) 나머지 체인이 자연스럽게 따라옵니다.
+
+**API 경계의 Zod 검증이 변경을 잡아줍니다.**
+서버 응답 형태가 바뀌면 스키마만 수정하면 되고,
+타입 시스템이 나머지 영향 범위를 컴파일 타임에 알려줍니다.
+
+**feature orchestration이 atom 조합을 캡슐화하고 있습니다.**
+`useDepartmentTree()`가 내부 atom 조합을 숨기고 있으므로,
+내부 구현이 바뀌어도 이 훅을 사용하는 컨테이너는 영향을 받지 않습니다.
+
+#### 정리
+
+이 프로젝트에서는 의도적으로 클라이언트에서 도메인 계산을 수행했습니다.
+
+트리 변환, 의존성 계산, atom 파생 체인처럼 복잡한 로직을 다룰 수 있다는 것을 보여주면서도,
+실제 서비스에서는 이 로직이 서버로 가야 한다는 점을 인지하고 있습니다.
+
+중요한 건 "할 줄 아는가"와 "어디서 해야 하는지 아는가"가 별개라는 점입니다.
+이 프로젝트는 둘 다를 보여주기 위해 클라이언트에 도메인 로직을 두되,
+전환 가능한 구조를 유지하는 방향으로 설계했습니다.
