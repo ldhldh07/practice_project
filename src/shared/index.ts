@@ -16,7 +16,6 @@ export { createHttpClient, type HttpClient } from "./api/client";
 
 export { cn } from "./lib/cn";
 export { splitByHighlight, type HighlightSegment } from "./lib/split-by-highlight";
-export { createModalFormHandler } from "./lib/form-handler";
 export { validateSchema } from "./lib/validate";
 
 // Errors

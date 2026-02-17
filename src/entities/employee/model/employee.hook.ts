@@ -3,18 +3,9 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  isAddEmployeeDialogOpenAtom,
-  isEditEmployeeDialogOpenAtom,
-  isEmployeeDetailDialogOpenAtom,
-  selectedEmployeeAtom,
-} from "./employee.atom";
+import { isAddEmployeeDialogOpenAtom, isEditEmployeeDialogOpenAtom, selectedEmployeeAtom } from "./employee.atom";
 
 import type { Employee } from "./employee.types";
-
-export function useSelectedEmployee(): [Employee | null, (employee: Employee | null) => void] {
-  return useAtom(selectedEmployeeAtom);
-}
 
 export function useSelectedEmployeeValue(): Employee | null {
   return useAtomValue(selectedEmployeeAtom);
@@ -22,14 +13,6 @@ export function useSelectedEmployeeValue(): Employee | null {
 
 export function useSetSelectedEmployee(): (employee: Employee | null) => void {
   return useSetAtom(selectedEmployeeAtom);
-}
-
-export function useEmployeeDetailDialog(): [boolean, (open: boolean) => void] {
-  return useAtom(isEmployeeDetailDialogOpenAtom);
-}
-
-export function useSetEmployeeDetailDialog(): (open: boolean) => void {
-  return useSetAtom(isEmployeeDetailDialogOpenAtom);
 }
 
 export function useAddEmployeeDialog(): [boolean, (open: boolean) => void] {

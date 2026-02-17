@@ -11,10 +11,6 @@ import {
 
 import type { Attendance } from "./attendance.types";
 
-export function useSelectedAttendance(): [Attendance | null, (attendance: Attendance | null) => void] {
-  return useAtom(selectedAttendanceAtom);
-}
-
 export function useSelectedAttendanceValue(): Attendance | null {
   return useAtomValue(selectedAttendanceAtom);
 }

@@ -90,33 +90,3 @@ export function useUpdateEmployeeMutation() {
     },
   });
 }
-
-export function useDeleteEmployeeMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => employeeApi.remove(id),
-    onMutate: async (id) => {
-      const listQueries = queryClient.getQueryCache().findAll({ queryKey: employeeQueryKeys.all });
-      const previousSnapshots = listQueries.map((q) => ({
-        key: q.queryKey,
-        data: q.state.data as EmployeesResponse | undefined,
-      }));
-
-      listQueries.forEach((q) => {
-        const data = (q.state.data as EmployeesResponse | undefined) ?? { employees: [], total: 0, skip: 0, limit: 10 };
-        const filtered = data.employees.filter((e: Employee) => e.id !== id);
-        queryClient.setQueryData(q.queryKey, { ...data, employees: filtered, total: Math.max(0, data.total - 1) });
-      });
-
-      return { previousSnapshots } as const;
-    },
-    onError: (_err, _variables, context) => {
-      if (!context) return;
-      context.previousSnapshots.forEach((s) => queryClient.setQueryData(s.key, s.data));
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: employeeQueryKeys.all });
-    },
-  });
-}

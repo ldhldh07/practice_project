@@ -6,7 +6,6 @@ export { attendanceApi } from "./api/attendance.api";
 export { attendanceQueryKeys } from "./model/attendance.keys";
 
 export {
-  useSelectedAttendance,
   useSelectedAttendanceValue,
   useSetSelectedAttendance,
   useAddAttendanceDialog,

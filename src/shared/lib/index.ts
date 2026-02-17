@@ -4,9 +4,6 @@ export { cn } from "./cn";
 // --- Text ---
 export { splitByHighlight, type HighlightSegment } from "./split-by-highlight";
 
-// --- Form ---
-export { createModalFormHandler } from "./form-handler";
-
 // --- Validation ---
 export { validateSchema } from "./validate";
 

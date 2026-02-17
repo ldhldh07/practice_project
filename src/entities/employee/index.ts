@@ -15,11 +15,8 @@ export { buildEmployeesQuery, buildEmployeeDetailQuery, useEmployeesQuery } from
 export { useEmployeeSearchParams } from "./model/employee-search-params";
 
 export {
-  useSelectedEmployee,
   useSelectedEmployeeValue,
   useSetSelectedEmployee,
-  useEmployeeDetailDialog,
-  useSetEmployeeDetailDialog,
   useAddEmployeeDialog,
   useSetAddEmployeeDialog,
   useEditEmployeeDialog,
