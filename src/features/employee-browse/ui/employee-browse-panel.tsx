@@ -3,9 +3,11 @@ import { Pagination } from "@/shared/ui/pagination";
 
 import { useEmployeeBrowse } from "../model/use-employee-browse";
 
+import type { ReactNode } from "react";
+
 type EmployeeBrowsePanelProps = {
   toDetailHref: (employeeId: number) => string;
-  filterSlot?: import("react").ReactNode;
+  filterSlot?: ReactNode;
 };
 
 export function EmployeeBrowsePanel({ toDetailHref, filterSlot }: Readonly<EmployeeBrowsePanelProps>) {

@@ -6,10 +6,12 @@ import { EmployeeDetailLayout } from "@/entities/employee";
 import { EmployeeDetailPanel } from "./employee-detail-panel";
 import { EMPLOYEE_DETAIL_TEXT } from "../model/employee-detail.constants";
 
+import type { ReactNode } from "react";
+
 type EmployeeDetailSectionProps = {
   employeeId: number;
   backToRoute: string;
-  children?: import("react").ReactNode;
+  children?: ReactNode;
 };
 
 export function EmployeeDetailSection({ employeeId, backToRoute, children }: Readonly<EmployeeDetailSectionProps>) {

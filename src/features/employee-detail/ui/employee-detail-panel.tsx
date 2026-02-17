@@ -11,9 +11,11 @@ import { Skeleton } from "@/shared/ui/skeleton";
 
 import { useEmployeeDetailLoad } from "../model/use-employee-detail-load";
 
+import type { ReactNode } from "react";
+
 type EmployeeDetailPanelProps = {
   employeeId: number;
-  children?: import("react").ReactNode;
+  children?: ReactNode;
 };
 
 export function EmployeeDetailPanel({ employeeId, children }: Readonly<EmployeeDetailPanelProps>) {
