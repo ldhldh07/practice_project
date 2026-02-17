@@ -22,21 +22,24 @@ const STATUS_CONFIG: Record<
 export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceListProps>) {
   if (attendance.length === 0) {
     return (
-      <p className="flex h-24 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <p
+        role="status"
+        className="flex h-24 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground"
+      >
         근태 기록이 없습니다
       </p>
     );
   }
 
   return (
-    <Table>
+    <Table aria-label="근태 기록">
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead>일자</TableHead>
-          <TableHead>출근</TableHead>
-          <TableHead>퇴근</TableHead>
-          <TableHead>상태</TableHead>
-          <TableHead>메모</TableHead>
+          <TableHead scope="col">일자</TableHead>
+          <TableHead scope="col">출근</TableHead>
+          <TableHead scope="col">퇴근</TableHead>
+          <TableHead scope="col">상태</TableHead>
+          <TableHead scope="col">메모</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -47,6 +50,7 @@ export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceList
               key={item.id}
               role="row"
               tabIndex={0}
+              aria-label={`${item.date} 근태 상세`}
               className="cursor-pointer"
               onClick={() => onSelect(item)}
               onKeyDown={(e) => {

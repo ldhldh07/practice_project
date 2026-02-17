@@ -27,10 +27,11 @@ export function EmployeeFilter({
   onOrderChange,
 }: Readonly<EmployeeFilterProps>) {
   return (
-    <search className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <search aria-label="직원 검색 및 필터" className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search aria-hidden="true" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
+          aria-label="직원 검색"
           placeholder="이름, 이메일, 직책으로 검색..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -40,7 +41,7 @@ export function EmployeeFilter({
 
       <div className="flex items-center gap-2">
         <Select value={status || "all"} onValueChange={(value) => onStatusChange(value === "all" ? "" : value)}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger aria-label="재직 상태 필터" className="w-[120px]">
             <SelectValue placeholder="상태" />
           </SelectTrigger>
           <SelectContent>
@@ -52,7 +53,7 @@ export function EmployeeFilter({
         </Select>
 
         <Select value={sortBy} onValueChange={(value) => onSortByChange(value as EmployeeSortBy)}>
-          <SelectTrigger className="w-[110px]">
+          <SelectTrigger aria-label="정렬 기준" className="w-[110px]">
             <SelectValue placeholder="정렬" />
           </SelectTrigger>
           <SelectContent>
@@ -65,7 +66,7 @@ export function EmployeeFilter({
         </Select>
 
         <Select value={order} onValueChange={(value) => onOrderChange(value as SortOrder)}>
-          <SelectTrigger className="w-[110px]">
+          <SelectTrigger aria-label="정렬 순서" className="w-[110px]">
             <SelectValue placeholder="순서" />
           </SelectTrigger>
           <SelectContent>
