@@ -12,7 +12,7 @@ export function EmployeeDetailLayout({ title, action, children }: Readonly<Emplo
   return (
     <Card className="mx-auto w-full max-w-4xl">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
           {action}
         </div>

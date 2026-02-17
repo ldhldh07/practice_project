@@ -17,7 +17,7 @@ export function Pagination({ total, skip, limit, onChangeLimit, onPrev, onNext }
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <nav aria-label="페이지네이션" className="flex items-center justify-between">
+    <nav aria-label="페이지네이션" className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>페이지당</span>
         <Select value={String(limit)} onValueChange={(value) => onChangeLimit(Number(value))}>

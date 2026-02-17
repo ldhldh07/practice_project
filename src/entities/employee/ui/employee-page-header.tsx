@@ -8,7 +8,7 @@ type EmployeePageHeaderProps = {
 
 export function EmployeePageHeader({ onAdd }: Readonly<EmployeePageHeaderProps>) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">직원 관리</h1>
         <p className="text-sm text-muted-foreground">조직의 구성원 정보를 관리합니다</p>
