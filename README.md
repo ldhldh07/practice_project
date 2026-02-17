@@ -1517,3 +1517,137 @@ export { BASE_URL } from "./lib/env";
 
 유틸이 50개, 100개로 늘어나도 barrel export의 카테고리 주석만 보면
 "Text 처리는 이미 `splitByHighlight`가 있으니 새로 만들 필요 없겠네"라고 판단할 수 있기 때문입니다.
+
+### 16. 테스트 전략과 검증 경계
+
+테스트를 작성하면서 가장 먼저 부딪힌 질문은 "무엇을 테스트하고 무엇을 테스트하지 않을지"였습니다.
+
+처음에는 커버리지를 높이는 방향으로 접근했는데,
+막상 작성하다 보니 이미 TypeScript 컴파일러와 Zod 스키마가 검증하고 있는 내용을
+테스트로 다시 확인하는 경우가 생겼습니다.
+이 중복을 줄이는 것이 테스트 전략의 핵심이었습니다.
+
+#### LSP와 Zod가 이미 커버하는 영역
+
+TypeScript 컴파일러(LSP)와 Zod 스키마는 빌드 타임에 다음을 이미 검증합니다.
+
+- 스키마 필드명과 타입 매칭
+- 인터페이스 정합성과 타입 계약
+- import 경계와 모듈 의존성
+
+이것들은 빌드가 통과하는 순간 이미 검증된 것이므로,
+테스트로 다시 확인하는 건 유지보수 비용만 늘리는 중복이었습니다.
+
+반면 테스트가 실질적으로 필요한 영역은 따로 있었습니다.
+
+- 순수 함수의 동작 정확성 (입력 → 출력 변환 로직)
+- atom 파생 체인의 연쇄 동작 (source → derived → filtered)
+- API 경계에서의 에러 변환 체인 (fetch → validateSchema → ValidationError)
+
+이 기준으로 테스트 범위를 좁히니 테스트 수는 줄었지만 유지보수 비용도 함께 줄었습니다.
+
+#### 단위테스트와 통합테스트 구분
+
+이 기준을 바탕으로 테스트를 두 종류로 나누었습니다.
+
+**단위테스트**: 입력 → 출력이 명확한 순수 함수를 대상으로 합니다.
+tree 변환, 텍스트 분할, 에러 분류처럼 외부 의존성 없이 동작하는 함수들입니다.
+
+```ts
+// src/entities/department/model/spec/department.tree.test.ts
+describe("buildDepartmentTree", () => {
+  it("flat 배열을 parentId 기준으로 트리 구조로 변환한다", () => {
+    const flat = [
+      { id: 1, name: "본부", parentId: null },
+      { id: 2, name: "개발팀", parentId: 1 },
+    ];
+    const tree = buildDepartmentTree(flat);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].children).toHaveLength(1);
+  });
+});
+```
+
+**통합테스트**: 여러 모듈이 연결되는 체인을 대상으로 합니다.
+atom 파생 체인과 API 경계 변환처럼 모듈 간 협력이 핵심인 경우입니다.
+
+```ts
+// src/entities/department/model/spec/department-tree.atom.test.ts
+describe("department atom 파생 체인", () => {
+  it("source → tree → visible 체인이 검색 필터를 반영한다", () => {
+    const store = createStore();
+    store.set(departmentSourceAtom, departments);
+    store.set(departmentTreeSearchAtom, "개발");
+    const visible = store.get(visibleDepartmentTreeAtom);
+    expect(visible.every(matchesKeyword("개발"))).toBe(true);
+  });
+});
+```
+
+```ts
+// src/entities/employee/api/spec/employee.api.test.ts
+describe("employee API 경계", () => {
+  it("스키마 불일치 시 ValidationError로 변환된다", async () => {
+    vi.stubGlobal("fetch", () => Response.json({ invalid: true }));
+    await expect(employeeApi.getList(params)).rejects.toThrow(ValidationError);
+  });
+});
+```
+
+#### FSD `spec/` 서브폴더 배치 근거
+
+테스트 파일을 어디에 둘지도 고민이었습니다.
+
+프로젝트 루트에 `__tests__/`를 두는 방식도 있지만,
+FSD Discussion #435에서 메인테이너 illright가 다음과 같이 답변한 내용을 참고했습니다.
+
+> "TL;DR: Put them in segments next to the code that they are testing."
+> "placing your tests in a `spec` or `tests/` folder inside each segment"
+
+co-location이 핵심이었습니다.
+테스트 파일이 테스트 대상 코드 바로 옆에 있으면,
+파일을 이동할 때 테스트도 함께 이동하고 세그먼트를 삭제할 때 테스트도 함께 삭제됩니다.
+FSD 공식 린터인 Steiger도 이 구조를 경고하지 않습니다.
+
+각 세그먼트 안에 `spec/` 폴더를 두는 방식으로 배치했습니다.
+
+```
+src/entities/department/model/
+├── department.tree.ts              # 소스
+├── department-tree.atom.ts         # 소스
+└── spec/
+    ├── department.tree.test.ts     # 단위테스트
+    └── department-tree.atom.test.ts # 통합테스트
+```
+
+루트 `__tests__/` 대비 장점은 명확했습니다.
+파일 이동 시 테스트도 함께 이동하고, 세그먼트 삭제 시 테스트도 함께 삭제되어
+테스트와 소스 코드 사이의 드리프트가 생기지 않았습니다.
+
+#### 테스트 수치 요약
+
+현재 프로젝트의 테스트 현황은 다음과 같습니다.
+
+- 8개 테스트 파일, 139개 테스트 케이스
+- 단위테스트 83개 (순수 함수 동작 검증)
+- 통합테스트 56개 (atom 체인 + API 경계 검증)
+- 실행 시간 약 1.2초
+
+각 파일별 분포는 다음과 같습니다.
+
+| 파일                                                          | 테스트 수 | 종류 |
+| ------------------------------------------------------------- | --------- | ---- |
+| `entities/department/model/spec/department.tree.test.ts`      | 19        | 단위 |
+| `entities/department/model/spec/department-tree.atom.test.ts` | 27        | 통합 |
+| `entities/employee/api/spec/employee.api.test.ts`             | 13        | 통합 |
+| `entities/attendance/api/spec/attendance.api.test.ts`         | 11        | 통합 |
+| `shared/lib/spec/split-by-highlight.test.ts`                  | 17        | 단위 |
+| `shared/lib/errors/spec/errors.test.ts`                       | 47        | 단위 |
+| `shared/api/spec/client.test.ts`                              | 3         | 통합 |
+| `shared/lib/spec/validate.test.ts`                            | 2         | 단위 |
+
+이 기준을 세운 결과, "테스트를 많이 작성하는 것"보다 "검증 도구별 역할을 나누는 것"이 유지보수에 더 효과적이었습니다.
+
+TypeScript와 Zod가 이미 커버하는 영역은 테스트에서 제외하고,
+런타임에서만 확인할 수 있는 동작 정확성과 모듈 간 협력에 집중하니
+테스트 코드 자체의 유지보수 부담이 줄어들었습니다.
