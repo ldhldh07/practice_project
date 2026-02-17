@@ -14,7 +14,7 @@ export function EmployeePageHeader({ onAdd }: Readonly<EmployeePageHeaderProps>)
         <p className="text-sm text-muted-foreground">조직의 구성원 정보를 관리합니다</p>
       </div>
       <Button onClick={onAdd}>
-        <Plus className="h-4 w-4" />
+        <Plus aria-hidden="true" className="h-4 w-4" />
         직원 추가
       </Button>
     </div>

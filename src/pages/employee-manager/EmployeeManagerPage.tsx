@@ -4,7 +4,7 @@ import { EmployeeBodyWidget, EmployeeDialogsWidget } from "@/widgets/employee-ma
 
 export function EmployeeManagerPage() {
   return (
-    <section className="space-y-6">
+    <section aria-label="직원 관리" className="space-y-6">
       <EmployeePageHeaderContainer />
       <EmployeeBodyWidget toEmployeeDetailHref={getEmployeeDetailHref} />
       <EmployeeDialogsWidget />

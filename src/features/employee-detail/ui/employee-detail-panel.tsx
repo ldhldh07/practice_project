@@ -27,7 +27,10 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
 
   if (employeeId <= 0) {
     return (
-      <p className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <p
+        role="alert"
+        className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground"
+      >
         유효하지 않은 직원 ID입니다.
       </p>
     );
@@ -35,7 +38,7 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div aria-busy="true" aria-label="직원 정보 로딩 중" className="space-y-6">
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="space-y-2">
@@ -53,15 +56,18 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
 
   if (isError || !employee) {
     return (
-      <div className="flex h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground">
-        <AlertCircle className="h-5 w-5 text-destructive" />
+      <div
+        role="alert"
+        className="flex h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground"
+      >
+        <AlertCircle aria-hidden="true" className="h-5 w-5 text-destructive" />
         직원 정보를 불러오지 못했습니다.
       </div>
     );
   }
 
   return (
-    <section className="space-y-6">
+    <section aria-label="직원 상세 정보" className="space-y-6">
       <EmployeeContent employee={employee} />
 
       <Separator />

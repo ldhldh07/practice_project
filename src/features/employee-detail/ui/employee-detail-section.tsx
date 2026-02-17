@@ -20,7 +20,7 @@ export function EmployeeDetailSection({ employeeId, backToRoute }: Readonly<Empl
           to={backToRoute}
           className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" />
           {EMPLOYEE_DETAIL_TEXT.backToList}
         </Link>
       }

@@ -16,6 +16,7 @@ export function HeaderContainer() {
           <li>
             <Link
               to={EMPLOYEE_MANAGER_ROUTE}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 isActive
