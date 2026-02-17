@@ -6,10 +6,13 @@ export type {
   CreateEmployeeParams,
   UpdateEmployeePayload,
 } from "./api/employee.api";
+export type { EmployeeSearchParams } from "./model/employee-search-params";
 
 export { employeeApi } from "./api/employee.api";
 export { employeeQueryKeys } from "./model/employee.keys";
 export type { EmployeesListParams } from "./model/employee.keys";
+export { buildEmployeesQuery, buildEmployeeDetailQuery, useEmployeesQuery } from "./model/employee.query";
+export { useEmployeeSearchParams } from "./model/employee-search-params";
 
 export {
   useSelectedEmployee,

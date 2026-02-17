@@ -10,11 +10,14 @@ import {
   useSelectedEmployeeValue,
   useSetEditEmployeeDialog,
 } from "@/entities/employee";
-import { AttendanceListContainer } from "@/features/attendance-edit";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
 import { Separator } from "@/shared/ui/separator";
 
-export function EmployeeDetailDialogContainer() {
+type EmployeeDetailDialogContainerProps = {
+  attendanceSlot?: import("react").ReactNode;
+};
+
+export function EmployeeDetailDialogContainer({ attendanceSlot }: Readonly<EmployeeDetailDialogContainerProps>) {
   const selectedEmployee = useSelectedEmployeeValue();
   const [isDetailOpen, setIsDetailOpen] = useEmployeeDetailDialog();
   const setIsEditEmployeeOpen = useSetEditEmployeeDialog();
@@ -44,7 +47,7 @@ export function EmployeeDetailDialogContainer() {
           canEditAttendance={!!selectedAttendance}
         />
 
-        {selectedEmployee ? <AttendanceListContainer employeeId={selectedEmployee.id} /> : null}
+        {selectedEmployee ? attendanceSlot : null}
       </DialogContent>
     </Dialog>
   );

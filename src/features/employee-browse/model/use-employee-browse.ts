@@ -3,10 +3,13 @@ import { useAtomValue } from "jotai";
 import { useNavigate } from "react-router-dom";
 
 import { selectedDepartmentDescendantsAtom } from "@/entities/department";
-import { useSetSelectedEmployee } from "@/entities/employee";
-import type { Employee } from "@/entities/employee";
-import { useEmployeeSearchParams } from "@/features/employee-filter";
-import { buildEmployeeDetailQuery, useEmployeesQuery } from "@/features/employee-load";
+import {
+  buildEmployeeDetailQuery,
+  type Employee,
+  useEmployeeSearchParams,
+  useSetSelectedEmployee,
+  useEmployeesQuery,
+} from "@/entities/employee";
 
 type UseEmployeeBrowseParams = {
   toDetailHref: (employeeId: number) => string;

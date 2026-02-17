@@ -79,6 +79,17 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/features/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@/features", "@/features/*", "@/features/**"],
+        },
+      ],
+    },
+  },
+  {
     files: ["src/widgets/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [

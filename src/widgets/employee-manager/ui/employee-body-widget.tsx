@@ -1,5 +1,6 @@
 import { DepartmentTreeContainer } from "@/features/department-tree";
 import { EmployeeBrowsePanel } from "@/features/employee-browse";
+import { EmployeeFilterContainer } from "@/features/employee-filter";
 
 type EmployeeBodyWidgetProps = {
   toEmployeeDetailHref: (employeeId: number) => string;
@@ -12,7 +13,7 @@ export function EmployeeBodyWidget({ toEmployeeDetailHref }: Readonly<EmployeeBo
         <DepartmentTreeContainer />
       </aside>
       <section>
-        <EmployeeBrowsePanel toDetailHref={toEmployeeDetailHref} />
+        <EmployeeBrowsePanel toDetailHref={toEmployeeDetailHref} filterSlot={<EmployeeFilterContainer />} />
       </section>
     </div>
   );

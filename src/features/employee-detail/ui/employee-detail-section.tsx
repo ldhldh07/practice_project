@@ -9,9 +9,10 @@ import { EMPLOYEE_DETAIL_TEXT } from "../model/employee-detail.constants";
 type EmployeeDetailSectionProps = {
   employeeId: number;
   backToRoute: string;
+  children?: import("react").ReactNode;
 };
 
-export function EmployeeDetailSection({ employeeId, backToRoute }: Readonly<EmployeeDetailSectionProps>) {
+export function EmployeeDetailSection({ employeeId, backToRoute, children }: Readonly<EmployeeDetailSectionProps>) {
   return (
     <EmployeeDetailLayout
       title={EMPLOYEE_DETAIL_TEXT.title}
@@ -25,7 +26,7 @@ export function EmployeeDetailSection({ employeeId, backToRoute }: Readonly<Empl
         </Link>
       }
     >
-      <EmployeeDetailPanel employeeId={employeeId} />
+      <EmployeeDetailPanel employeeId={employeeId}>{children}</EmployeeDetailPanel>
     </EmployeeDetailLayout>
   );
 }

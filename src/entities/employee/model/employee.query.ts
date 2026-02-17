@@ -1,7 +1,9 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 
-import { employeeApi, employeeQueryKeys } from "@/entities/employee";
-import type { EmployeesParams } from "@/entities/employee";
+import { employeeQueryKeys } from "./employee.keys";
+import { employeeApi } from "../api/employee.api";
+
+import type { EmployeesParams } from "../api/employee.api";
 
 export const buildEmployeesQuery = (params: EmployeesParams) =>
   queryOptions({
@@ -17,3 +19,10 @@ export const buildEmployeeDetailQuery = (employeeId: number) =>
     queryFn: () => employeeApi.getById(employeeId),
     enabled: employeeId > 0,
   });
+
+export function useEmployeesQuery(params: EmployeesParams) {
+  return useQuery({
+    ...buildEmployeesQuery(params),
+    placeholderData: keepPreviousData,
+  });
+}

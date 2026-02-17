@@ -6,8 +6,6 @@ import {
   useSetEditAttendanceDialog,
 } from "@/entities/attendance";
 import { EmployeeActionBar, EmployeeContent, useSetEditEmployeeDialog } from "@/entities/employee";
-import { AttendanceDialogsBySelectedEmployee, AttendanceListContainer } from "@/features/attendance-edit";
-import { EmployeeEditDialogContainer } from "@/features/employee-edit";
 import { Separator } from "@/shared/ui/separator";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -15,9 +13,10 @@ import { useEmployeeDetailLoad } from "../model/use-employee-detail-load";
 
 type EmployeeDetailPanelProps = {
   employeeId: number;
+  children?: import("react").ReactNode;
 };
 
-export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanelProps>) {
+export function EmployeeDetailPanel({ employeeId, children }: Readonly<EmployeeDetailPanelProps>) {
   const { employee, isLoading, isError } = useEmployeeDetailLoad(employeeId);
   const selectedAttendance = useSelectedAttendanceValue();
 
@@ -79,10 +78,7 @@ export function EmployeeDetailPanel({ employeeId }: Readonly<EmployeeDetailPanel
         canEditAttendance={!!selectedAttendance}
       />
 
-      <AttendanceListContainer employeeId={employeeId} />
-
-      <EmployeeEditDialogContainer />
-      <AttendanceDialogsBySelectedEmployee />
+      {children}
     </section>
   );
 }

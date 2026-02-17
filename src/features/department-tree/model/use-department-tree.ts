@@ -12,7 +12,7 @@ import {
   toggleDepartmentExpandAtom,
   visibleDepartmentTreeAtom,
 } from "@/entities/department";
-import { useEmployeeSearchParams } from "@/features/employee-filter";
+import { useEmployeeSearchParams } from "@/entities/employee";
 
 function useDepartmentTreeSourceSync() {
   const setDepartmentSource = useSetAtom(departmentSourceAtom);

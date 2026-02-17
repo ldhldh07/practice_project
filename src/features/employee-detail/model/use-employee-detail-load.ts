@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { useSetSelectedEmployee } from "@/entities/employee";
-import { buildEmployeeDetailQuery } from "@/features/employee-load";
+import { buildEmployeeDetailQuery, useSetSelectedEmployee } from "@/entities/employee";
 
 export function useEmployeeDetailLoad(employeeId: number) {
   const setSelectedEmployee = useSetSelectedEmployee();

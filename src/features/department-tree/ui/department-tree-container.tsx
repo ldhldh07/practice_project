@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 
 import { DepartmentTree } from "@/entities/department";
-import { useEmployeeSearchParams } from "@/features/employee-filter";
+import { useEmployeeSearchParams } from "@/entities/employee";
 import { Input } from "@/shared/ui/input";
 
 import { useDepartmentTree } from "../model/use-department-tree";

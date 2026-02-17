@@ -1,6 +1,4 @@
-import { EmployeeFilter } from "@/entities/employee";
-
-import { useEmployeeSearchParams } from "../model/employee-search-params";
+import { EmployeeFilter, useEmployeeSearchParams } from "@/entities/employee";
 
 export function EmployeeFilterContainer() {
   const { params, setParams } = useEmployeeSearchParams();
