@@ -38,6 +38,9 @@ function DepartmentTreeNodeItem({
       <div
         role="treeitem"
         tabIndex={0}
+        aria-selected={isSelected}
+        aria-level={depth + 1}
+        {...(hasChildren ? { "aria-expanded": isExpanded } : {})}
         className={cn(
           "group flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm cursor-pointer transition-colors",
           isSelected
@@ -56,22 +59,28 @@ function DepartmentTreeNodeItem({
         {hasChildren ? (
           <button
             type="button"
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? `${node.name} 접기` : `${node.name} 펼치기`}
             className="flex-shrink-0 rounded-sm p-0.5 hover:bg-accent"
             onClick={(e) => {
               e.stopPropagation();
               onToggle(node.id);
             }}
           >
-            {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            {isExpanded ? (
+              <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
+            )}
           </button>
         ) : (
           <span className="w-[18px] flex-shrink-0" />
         )}
         {hasChildren ? (
           isExpanded ? (
-            <FolderOpen className="h-4 w-4 flex-shrink-0 text-primary/70" />
+            <FolderOpen aria-hidden="true" className="h-4 w-4 flex-shrink-0 text-primary/70" />
           ) : (
-            <Folder className="h-4 w-4 flex-shrink-0 text-primary/70" />
+            <Folder aria-hidden="true" className="h-4 w-4 flex-shrink-0 text-primary/70" />
           )
         ) : (
           <span className="w-4 flex-shrink-0" />
@@ -79,8 +88,9 @@ function DepartmentTreeNodeItem({
         <span className="truncate">{node.name}</span>
       </div>
 
-      {hasChildren && isExpanded
-        ? node.children.map((child) => (
+      {hasChildren && isExpanded ? (
+        <div role="group">
+          {node.children.map((child) => (
             <DepartmentTreeNodeItem
               key={child.id}
               node={child}
@@ -90,15 +100,16 @@ function DepartmentTreeNodeItem({
               onSelect={onSelect}
               onToggle={onToggle}
             />
-          ))
-        : null}
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function DepartmentTree({ nodes, selectedId, expandedIds, onSelect, onToggle }: Readonly<DepartmentTreeProps>) {
   return (
-    <div className="space-y-0.5">
+    <div role="tree" aria-label="조직도" className="space-y-0.5">
       {nodes.map((node) => (
         <DepartmentTreeNodeItem
           key={node.id}
