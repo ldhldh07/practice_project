@@ -34,15 +34,29 @@ export function Pagination({ total, skip, limit, onChangeLimit, onPrev, onNext }
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
+        <span aria-live="polite" aria-atomic="true" className="text-sm text-muted-foreground">
           {currentPage} / {totalPages}
         </span>
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={skip === 0} onClick={onPrev}>
-            <ChevronLeft className="h-4 w-4" />
+          <Button
+            aria-label="이전 페이지"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={skip === 0}
+            onClick={onPrev}
+          >
+            <ChevronLeft aria-hidden="true" className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={skip + limit >= total} onClick={onNext}>
-            <ChevronRight className="h-4 w-4" />
+          <Button
+            aria-label="다음 페이지"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={skip + limit >= total}
+            onClick={onNext}
+          >
+            <ChevronRight aria-hidden="true" className="h-4 w-4" />
           </Button>
         </div>
       </div>

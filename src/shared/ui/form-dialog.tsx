@@ -1,5 +1,5 @@
 import { Button } from "./button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 
 import type { ReactNode } from "react";
 
@@ -9,6 +9,7 @@ interface FormDialogProps {
   title: string;
   onSubmit: () => Promise<void> | void;
   children: ReactNode;
+  description?: string;
   submitLabel?: string;
   disabled?: boolean;
 }
@@ -19,6 +20,7 @@ export function FormDialog({
   title,
   onSubmit,
   children,
+  description,
   submitLabel = "확인",
   disabled = false,
 }: Readonly<FormDialogProps>) {
@@ -27,6 +29,11 @@ export function FormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            <DialogDescription className="sr-only">{title} 양식</DialogDescription>
+          )}
         </DialogHeader>
         <form
           onSubmit={(e) => {
