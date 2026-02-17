@@ -1,4 +1,6 @@
 import { BASE_URL } from "@/shared/lib/env";
+import { ApiError, BadRequestError, NetworkError, NotFoundError, TimeoutError } from "@/shared/lib/errors";
+import { ERROR_CODES } from "@/shared/lib/errors";
 
 type Query = Record<string, string | number | boolean | string[] | undefined>;
 
@@ -38,13 +40,70 @@ export interface HttpClient {
 }
 
 export function createHttpClient(baseUrl: string): HttpClient {
-  async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
-    const res = await fetch(input, init);
-    if (!res.ok) {
+  async function parseErrorBody(res: Response): Promise<{ data?: unknown; text?: string }> {
+    try {
+      const data = await res.clone().json();
+      return { data };
+    } catch {
       const text = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} ${res.statusText} ${text ? `- ${text}` : ""}`);
+      return { text };
     }
-    return (await res.json()) as T;
+  }
+
+  function getErrorMessage(status: number, statusText: string, data?: unknown, text?: string): string {
+    const prefix = `HTTP ${status} ${statusText}`;
+
+    if (typeof data === "string" && data.trim()) return `${prefix} - ${data}`;
+    if (data && typeof data === "object") {
+      const maybeMessage = (data as { message?: unknown }).message;
+      if (typeof maybeMessage === "string" && maybeMessage.trim()) {
+        return `${prefix} - ${maybeMessage}`;
+      }
+    }
+    if (text && text.trim()) return `${prefix} - ${text}`;
+    return prefix;
+  }
+
+  function mapHttpError(status: number, statusText: string, data?: unknown, text?: string): Error {
+    const message = getErrorMessage(status, statusText, data, text);
+
+    if (status === 400) return new BadRequestError(message, data);
+    if (status === 404) return new NotFoundError(message);
+    if (status === 401 || status === 403) {
+      return new ApiError(message, ERROR_CODES.UNAUTHORIZED, status, data);
+    }
+    if (status === 408) return new TimeoutError(message);
+    if (status >= 500 && status < 600) {
+      return new ApiError(message, ERROR_CODES.INTERNAL_SERVER_ERROR, status, data);
+    }
+
+    return new ApiError(message, ERROR_CODES.UNKNOWN_ERROR, status, data);
+  }
+
+  async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
+    try {
+      const res = await fetch(input, init);
+      if (!res.ok) {
+        const { data, text } = await parseErrorBody(res);
+        throw mapHttpError(res.status, res.statusText, data, text);
+      }
+
+      return (await res.json()) as T;
+    } catch (error) {
+      if (error instanceof ApiError || error instanceof BadRequestError || error instanceof NotFoundError) {
+        throw error;
+      }
+      if (error instanceof TimeoutError) {
+        throw error;
+      }
+      if (error instanceof DOMException && error.name === "AbortError") {
+        throw new TimeoutError();
+      }
+      if (error instanceof TypeError) {
+        throw new NetworkError(error.message);
+      }
+      throw error;
+    }
   }
 
   return {
