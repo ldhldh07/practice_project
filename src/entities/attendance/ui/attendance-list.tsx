@@ -43,7 +43,19 @@ export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceList
         {attendance.map((item) => {
           const status = STATUS_CONFIG[item.status];
           return (
-            <TableRow key={item.id} className="cursor-pointer" onClick={() => onSelect(item)}>
+            <TableRow
+              key={item.id}
+              role="row"
+              tabIndex={0}
+              className="cursor-pointer"
+              onClick={() => onSelect(item)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(item);
+                }
+              }}
+            >
               <TableCell className="font-medium">{item.date}</TableCell>
               <TableCell className="text-muted-foreground">{item.checkIn || "-"}</TableCell>
               <TableCell className="text-muted-foreground">{item.checkOut || "-"}</TableCell>

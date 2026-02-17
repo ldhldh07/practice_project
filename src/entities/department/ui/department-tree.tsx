@@ -36,6 +36,8 @@ function DepartmentTreeNodeItem({
   return (
     <div>
       <div
+        role="treeitem"
+        tabIndex={0}
         className={cn(
           "group flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm cursor-pointer transition-colors",
           isSelected
@@ -44,6 +46,12 @@ function DepartmentTreeNodeItem({
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={() => onSelect(node.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect(node.id);
+          }
+        }}
       >
         {hasChildren ? (
           <button

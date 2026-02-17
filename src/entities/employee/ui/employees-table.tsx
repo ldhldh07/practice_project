@@ -39,7 +39,19 @@ export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableP
         {employees.map((employee) => {
           const status = STATUS_CONFIG[employee.status];
           return (
-            <TableRow key={employee.id} className="cursor-pointer" onClick={() => onSelect(employee)}>
+            <TableRow
+              key={employee.id}
+              role="row"
+              tabIndex={0}
+              className="cursor-pointer"
+              onClick={() => onSelect(employee)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(employee);
+                }
+              }}
+            >
               <TableCell className="font-medium">{employee.name}</TableCell>
               <TableCell className="text-muted-foreground">{employee.email}</TableCell>
               <TableCell className="text-muted-foreground">{employee.phone}</TableCell>
