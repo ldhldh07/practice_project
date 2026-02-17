@@ -33,8 +33,15 @@ export default defineConfig({
           if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
             return "vendor-react";
           }
-          // TanStack Query
-          if (id.includes("node_modules/@tanstack/react-query/")) {
+          // React Router (v7 ships all code under react-router/, not react-router-dom/)
+          if (id.includes("node_modules/react-router")) {
+            return "vendor-router";
+          }
+          // TanStack Query (exclude devtools — they get their own chunk)
+          if (id.includes("node_modules/@tanstack/react-query-devtools")) {
+            return "vendor-devtools";
+          }
+          if (id.includes("node_modules/@tanstack/react-query")) {
             return "vendor-query";
           }
           // React Hook Form
@@ -45,13 +52,21 @@ export default defineConfig({
           if (id.includes("node_modules/jotai/")) {
             return "vendor-jotai";
           }
-          // React Router
-          if (id.includes("node_modules/react-router-dom/")) {
-            return "vendor-router";
-          }
           // Zod
           if (id.includes("node_modules/zod/")) {
             return "vendor-zod";
+          }
+          // Radix UI primitives
+          if (id.includes("node_modules/@radix-ui/")) {
+            return "vendor-radix";
+          }
+          // Style utilities (cva, clsx, tailwind-merge)
+          if (
+            id.includes("node_modules/class-variance-authority/") ||
+            id.includes("node_modules/clsx/") ||
+            id.includes("node_modules/tailwind-merge/")
+          ) {
+            return "vendor-style";
           }
           // Lucide Icons
           if (id.includes("node_modules/lucide-react/")) {
