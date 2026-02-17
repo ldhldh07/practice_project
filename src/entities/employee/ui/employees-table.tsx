@@ -27,8 +27,12 @@ export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableP
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead scope="col">이름</TableHead>
-          <TableHead scope="col">이메일</TableHead>
-          <TableHead scope="col">전화번호</TableHead>
+          <TableHead scope="col" className="hidden md:table-cell">
+            이메일
+          </TableHead>
+          <TableHead scope="col" className="hidden md:table-cell">
+            전화번호
+          </TableHead>
           <TableHead scope="col">직책</TableHead>
           <TableHead scope="col">입사일</TableHead>
           <TableHead scope="col">상태</TableHead>
@@ -53,8 +57,8 @@ export function EmployeesTable({ employees, onSelect }: Readonly<EmployeesTableP
               }}
             >
               <TableCell className="font-medium">{employee.name}</TableCell>
-              <TableCell className="text-muted-foreground">{employee.email}</TableCell>
-              <TableCell className="text-muted-foreground">{employee.phone}</TableCell>
+              <TableCell className="hidden text-muted-foreground md:table-cell">{employee.email}</TableCell>
+              <TableCell className="hidden text-muted-foreground md:table-cell">{employee.phone}</TableCell>
               <TableCell>{employee.position}</TableCell>
               <TableCell className="text-muted-foreground">{employee.hireDate}</TableCell>
               <TableCell>

@@ -39,7 +39,9 @@ export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceList
           <TableHead scope="col">출근</TableHead>
           <TableHead scope="col">퇴근</TableHead>
           <TableHead scope="col">상태</TableHead>
-          <TableHead scope="col">메모</TableHead>
+          <TableHead scope="col" className="hidden sm:table-cell">
+            메모
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -66,7 +68,9 @@ export function AttendanceList({ attendance, onSelect }: Readonly<AttendanceList
               <TableCell>
                 <Badge variant={status.variant}>{status.label}</Badge>
               </TableCell>
-              <TableCell className="max-w-48 truncate text-muted-foreground">{item.note || "-"}</TableCell>
+              <TableCell className="hidden max-w-48 truncate text-muted-foreground sm:table-cell">
+                {item.note || "-"}
+              </TableCell>
             </TableRow>
           );
         })}
