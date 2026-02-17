@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -14,6 +16,7 @@ type EmployeeAddDialogProps = {
 };
 
 export function EmployeeAddDialog({ open, onOpenChange, form, onSubmit }: Readonly<EmployeeAddDialogProps>) {
+  const id = useId();
   const {
     register,
     setValue,
@@ -32,24 +35,30 @@ export function EmployeeAddDialog({ open, onOpenChange, form, onSubmit }: Readon
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>이름</Label>
-          <Input placeholder="홍길동" {...register("name")} error={errors.name?.message} />
+          <Label htmlFor={`${id}-name`}>이름</Label>
+          <Input id={`${id}-name`} placeholder="홍길동" {...register("name")} error={errors.name?.message} />
         </div>
         <div className="space-y-2">
-          <Label>이메일</Label>
-          <Input placeholder="email@company.com" {...register("email")} error={errors.email?.message} />
-        </div>
-        <div className="space-y-2">
-          <Label>전화번호</Label>
-          <Input placeholder="010-0000-0000" {...register("phone")} error={errors.phone?.message} />
-        </div>
-        <div className="space-y-2">
-          <Label>직책</Label>
-          <Input placeholder="사원" {...register("position")} error={errors.position?.message} />
-        </div>
-        <div className="space-y-2">
-          <Label>부서 ID</Label>
+          <Label htmlFor={`${id}-email`}>이메일</Label>
           <Input
+            id={`${id}-email`}
+            placeholder="email@company.com"
+            {...register("email")}
+            error={errors.email?.message}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-phone`}>전화번호</Label>
+          <Input id={`${id}-phone`} placeholder="010-0000-0000" {...register("phone")} error={errors.phone?.message} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-position`}>직책</Label>
+          <Input id={`${id}-position`} placeholder="사원" {...register("position")} error={errors.position?.message} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor={`${id}-departmentId`}>부서 ID</Label>
+          <Input
+            id={`${id}-departmentId`}
             type="number"
             placeholder="1"
             value={watch("departmentId")}
@@ -58,17 +67,17 @@ export function EmployeeAddDialog({ open, onOpenChange, form, onSubmit }: Readon
           />
         </div>
         <div className="space-y-2">
-          <Label>입사일</Label>
-          <Input type="date" {...register("hireDate")} error={errors.hireDate?.message} />
+          <Label htmlFor={`${id}-hireDate`}>입사일</Label>
+          <Input id={`${id}-hireDate`} type="date" {...register("hireDate")} error={errors.hireDate?.message} />
         </div>
       </div>
       <div className="space-y-2">
-        <Label>재직 상태</Label>
+        <Label id={`${id}-status-label`}>재직 상태</Label>
         <Select
           value={watch("status")}
           onValueChange={(value) => setValue("status", value as CreateEmployeeFormData["status"])}
         >
-          <SelectTrigger>
+          <SelectTrigger aria-labelledby={`${id}-status-label`}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

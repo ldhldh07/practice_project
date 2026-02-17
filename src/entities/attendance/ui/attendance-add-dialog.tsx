@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import { FormDialog } from "@/shared/ui/form-dialog";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -15,6 +17,7 @@ type AttendanceAddDialogProps = {
 };
 
 export function AttendanceAddDialog({ open, onOpenChange, form, onSubmit }: Readonly<AttendanceAddDialogProps>) {
+  const id = useId();
   const {
     register,
     setValue,
@@ -33,16 +36,16 @@ export function AttendanceAddDialog({ open, onOpenChange, form, onSubmit }: Read
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>일자</Label>
-          <Input type="date" {...register("date")} error={errors.date?.message} />
+          <Label htmlFor={`${id}-date`}>일자</Label>
+          <Input id={`${id}-date`} type="date" {...register("date")} error={errors.date?.message} />
         </div>
         <div className="space-y-2">
-          <Label>근태 상태</Label>
+          <Label id={`${id}-status-label`}>근태 상태</Label>
           <Select
             value={watch("status")}
             onValueChange={(value) => setValue("status", value as AttendanceFormData["status"])}
           >
-            <SelectTrigger>
+            <SelectTrigger aria-labelledby={`${id}-status-label`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -55,17 +58,17 @@ export function AttendanceAddDialog({ open, onOpenChange, form, onSubmit }: Read
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>출근 시간</Label>
-          <Input placeholder="09:00" {...register("checkIn")} />
+          <Label htmlFor={`${id}-checkIn`}>출근 시간</Label>
+          <Input id={`${id}-checkIn`} placeholder="09:00" {...register("checkIn")} />
         </div>
         <div className="space-y-2">
-          <Label>퇴근 시간</Label>
-          <Input placeholder="18:00" {...register("checkOut")} />
+          <Label htmlFor={`${id}-checkOut`}>퇴근 시간</Label>
+          <Input id={`${id}-checkOut`} placeholder="18:00" {...register("checkOut")} />
         </div>
       </div>
       <div className="space-y-2">
-        <Label>메모</Label>
-        <Textarea placeholder="특이사항을 입력하세요" {...register("note")} />
+        <Label htmlFor={`${id}-note`}>메모</Label>
+        <Textarea id={`${id}-note`} placeholder="특이사항을 입력하세요" {...register("note")} />
       </div>
     </FormDialog>
   );
