@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { ERROR_CODES, getErrorMessage } from "../error-codes";
 import {
   ApiError,
   AppError,
@@ -11,7 +12,8 @@ import {
   TimeoutError,
   ValidationError,
 } from "../errors";
-import { ERROR_CODES, getErrorMessage } from "../error-codes";
+
+import type { ZodIssue } from "zod";
 
 describe("Error Class Hierarchy", () => {
   describe("BaseError", () => {
@@ -130,7 +132,7 @@ describe("Error Class Hierarchy", () => {
         },
       ];
 
-      const error = new ValidationError("validation failed", mockIssues as any);
+      const error = new ValidationError("validation failed", mockIssues as ZodIssue[]);
 
       expect(error.name).toBe("ValidationError");
       expect(error.message).toBe("validation failed");

@@ -13,8 +13,7 @@
       "@widgets/*": ["widgets/*"],
       "@features/*": ["features/*"],
       "@entities/*": ["entities/*"],
-      "@shared/*": ["shared/*"],
-      "@components/*": ["components/*"]
+      "@shared/*": ["shared/*"]
     },
 
     /* Bundler mode */
