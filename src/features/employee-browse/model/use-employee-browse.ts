@@ -1,6 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
-import { useNavigate } from "react-router-dom";
 
 import { selectedDepartmentDescendantsAtom } from "@/entities/department";
 import {
@@ -10,10 +9,6 @@ import {
   useSetSelectedEmployee,
   useEmployeesQuery,
 } from "@/entities/employee";
-
-type UseEmployeeBrowseParams = {
-  toDetailHref: (employeeId: number) => string;
-};
 
 function useEmployeeListQuery() {
   const { params } = useEmployeeSearchParams();
@@ -31,17 +26,15 @@ function useEmployeeListQuery() {
   });
 }
 
-export function useEmployeeBrowse({ toDetailHref }: Readonly<UseEmployeeBrowseParams>) {
+export function useEmployeeBrowse() {
   const { params, setParams } = useEmployeeSearchParams();
   const { data } = useEmployeeListQuery();
-  const navigate = useNavigate();
   const setSelectedEmployee = useSetSelectedEmployee();
   const queryClient = useQueryClient();
 
   const onSelect = (employee: Employee) => {
     setSelectedEmployee(employee);
     queryClient.prefetchQuery(buildEmployeeDetailQuery(employee.id));
-    navigate(toDetailHref(employee.id));
   };
 
   const onChangeLimit = (value: number) => setParams({ limit: value, skip: 0 });

@@ -1,4 +1,4 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Pencil, Plus } from "lucide-react";
 
 import {
   useSelectedAttendanceValue,
@@ -6,6 +6,7 @@ import {
   useSetEditAttendanceDialog,
 } from "@/entities/attendance";
 import { EmployeeActionBar, EmployeeContent, useSetEditEmployeeDialog } from "@/entities/employee";
+import { Button } from "@/shared/ui/button";
 import { Separator } from "@/shared/ui/separator";
 import { Skeleton } from "@/shared/ui/skeleton";
 
@@ -75,9 +76,23 @@ export function EmployeeDetailPanel({ employeeId, children }: Readonly<EmployeeD
 
       <EmployeeActionBar
         onEditEmployee={() => setIsEditEmployeeOpen(true)}
-        onAddAttendance={() => setIsAddAttendanceOpen(true)}
-        onEditAttendance={() => setIsEditAttendanceOpen(true)}
-        canEditAttendance={!!selectedAttendance}
+        extraActions={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setIsAddAttendanceOpen(true)}>
+              <Plus aria-hidden="true" className="h-4 w-4" />
+              근태 추가
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!selectedAttendance}
+              onClick={() => setIsEditAttendanceOpen(true)}
+            >
+              <Pencil aria-hidden="true" className="h-4 w-4" />
+              선택 근태 수정
+            </Button>
+          </>
+        }
       />
 
       {children}
