@@ -75,12 +75,16 @@ export const AppError = {
 
   is: (error: unknown): error is BaseError => error instanceof BaseError,
   isApi: (error: unknown): error is ApiError => error instanceof ApiError,
+  isExpected: (error: unknown): boolean => {
+    if (!(error instanceof ApiError)) return false;
+    const expectedStatuses = new Set([400, 404, 409]);
+    return error.statusCode !== undefined && expectedStatuses.has(error.statusCode);
+  },
   isNetwork: (error: unknown): error is NetworkError => error instanceof NetworkError,
   isValidation: (error: unknown): error is ValidationError => error instanceof ValidationError,
   isResponseParse: (error: unknown): error is ResponseParseError => error instanceof ResponseParseError,
 
-  hasCode: (error: unknown, code: string): error is BaseError =>
-    error instanceof BaseError && error.code === code,
+  hasCode: (error: unknown, code: string): error is BaseError => error instanceof BaseError && error.code === code,
 
   fromCode: (code: string, message: string, statusCode?: number, data?: unknown): Error => {
     switch (code) {
@@ -97,3 +101,7 @@ export const AppError = {
     }
   },
 } as const;
+
+export function isExpectedError(error: unknown): boolean {
+  return AppError.isExpected(error);
+}

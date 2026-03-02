@@ -8,6 +8,7 @@ export {
   ValidationError,
   ResponseParseError,
   AppError,
+  isExpectedError,
 } from "./errors";
 
 export {

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import {
   useAddEmployeeDialog,
   useCreateEmployeeForm,
@@ -8,15 +10,29 @@ import {
 
 import { useCreateEmployeeMutation, useUpdateEmployeeMutation } from "./employee.mutation";
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : null;
+}
+
 export function useAddEmployeeDialogFlow() {
   const [isAddOpen, setIsAddOpen] = useAddEmployeeDialog();
   const form = useCreateEmployeeForm();
   const createMutation = useCreateEmployeeMutation();
 
-  const handleSubmit = form.handleSubmit((data) => {
-    createMutation.mutate(data);
-    setIsAddOpen(false);
-    form.reset();
+  useEffect(() => {
+    if (isAddOpen) {
+      createMutation.reset();
+    }
+  }, [isAddOpen, createMutation]);
+
+  const handleSubmit = form.handleSubmit(async (data) => {
+    try {
+      await createMutation.mutateAsync(data);
+      setIsAddOpen(false);
+      form.reset();
+    } catch {
+      return;
+    }
   });
 
   return {
@@ -24,6 +40,8 @@ export function useAddEmployeeDialogFlow() {
     setIsAddOpen,
     form,
     handleSubmit,
+    error: getErrorMessage(createMutation.error),
+    resetError: createMutation.reset,
   };
 }
 
@@ -33,10 +51,20 @@ export function useEditEmployeeDialogFlow() {
   const form = useUpdateEmployeeForm(selectedEmployee);
   const updateMutation = useUpdateEmployeeMutation();
 
-  const handleSubmit = form.handleSubmit((data) => {
+  useEffect(() => {
+    if (isEditOpen) {
+      updateMutation.reset();
+    }
+  }, [isEditOpen, updateMutation]);
+
+  const handleSubmit = form.handleSubmit(async (data) => {
     if (!selectedEmployee) return;
-    updateMutation.mutate({ employeeId: selectedEmployee.id, params: data });
-    setIsEditOpen(false);
+    try {
+      await updateMutation.mutateAsync({ employeeId: selectedEmployee.id, params: data });
+      setIsEditOpen(false);
+    } catch {
+      return;
+    }
   });
 
   return {
@@ -44,5 +72,7 @@ export function useEditEmployeeDialogFlow() {
     setIsEditOpen,
     form,
     handleSubmit,
+    error: getErrorMessage(updateMutation.error),
+    resetError: updateMutation.reset,
   };
 }

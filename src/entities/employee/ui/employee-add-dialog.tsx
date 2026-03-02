@@ -13,9 +13,10 @@ type EmployeeAddDialogProps = {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<CreateEmployeeFormData>;
   onSubmit: () => Promise<void> | void;
+  error?: string | null;
 };
 
-export function EmployeeAddDialog({ open, onOpenChange, form, onSubmit }: Readonly<EmployeeAddDialogProps>) {
+export function EmployeeAddDialog({ open, onOpenChange, form, onSubmit, error }: Readonly<EmployeeAddDialogProps>) {
   const id = useId();
   const {
     register,
@@ -32,6 +33,7 @@ export function EmployeeAddDialog({ open, onOpenChange, form, onSubmit }: Readon
       onSubmit={onSubmit}
       submitLabel="추가"
       disabled={isSubmitting}
+      error={error}
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

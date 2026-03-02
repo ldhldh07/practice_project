@@ -3,7 +3,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { gooeyToast } from "goey-toast";
 import { useState, type PropsWithChildren } from "react";
 
-import { ApiError, AppError, ResponseParseError, ValidationError } from "@/shared";
+import { ApiError, AppError, ResponseParseError, ValidationError, isExpectedError } from "@/shared";
 
 export function QueryProvider({ children }: PropsWithChildren) {
   const [client] = useState(
@@ -11,6 +11,7 @@ export function QueryProvider({ children }: PropsWithChildren) {
       new QueryClient({
         mutationCache: new MutationCache({
           onError: (error, _variables, _context, mutation) => {
+            if (isExpectedError(error)) return;
             if (mutation.meta?.hideErrorToast) return;
 
             const message = AppError.isApi(error) ? error.message : "오류가 발생했습니다. 다시 시도해 주세요.";

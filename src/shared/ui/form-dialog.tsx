@@ -1,5 +1,6 @@
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
+import { DialogErrorMessage } from "./dialog-error-message";
 
 import type { ReactNode } from "react";
 
@@ -12,6 +13,7 @@ interface FormDialogProps {
   description?: string;
   submitLabel?: string;
   disabled?: boolean;
+  error?: string | null;
 }
 
 export function FormDialog({
@@ -23,6 +25,7 @@ export function FormDialog({
   description,
   submitLabel = "확인",
   disabled = false,
+  error,
 }: Readonly<FormDialogProps>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,6 +45,7 @@ export function FormDialog({
           }}
         >
           <div className="grid gap-4 py-2">{children}</div>
+          {error ? <DialogErrorMessage message={error} /> : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               취소

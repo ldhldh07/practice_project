@@ -14,9 +14,10 @@ type AttendanceAddDialogProps = {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<AttendanceFormData>;
   onSubmit: () => Promise<void> | void;
+  error?: string | null;
 };
 
-export function AttendanceAddDialog({ open, onOpenChange, form, onSubmit }: Readonly<AttendanceAddDialogProps>) {
+export function AttendanceAddDialog({ open, onOpenChange, form, onSubmit, error }: Readonly<AttendanceAddDialogProps>) {
   const id = useId();
   const {
     register,
@@ -33,6 +34,7 @@ export function AttendanceAddDialog({ open, onOpenChange, form, onSubmit }: Read
       onSubmit={onSubmit}
       submitLabel="추가"
       disabled={isSubmitting}
+      error={error}
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

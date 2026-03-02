@@ -7,7 +7,15 @@ type AttendanceAddDialogContainerProps = {
 };
 
 export function AttendanceAddDialogContainer({ employeeId }: Readonly<AttendanceAddDialogContainerProps>) {
-  const { isAddOpen, setIsAddOpen, form, handleSubmit } = useAttendanceAddDialogFlow(employeeId);
+  const { isAddOpen, setIsAddOpen, form, handleSubmit, error } = useAttendanceAddDialogFlow(employeeId);
 
-  return <AttendanceAddDialog open={isAddOpen} onOpenChange={setIsAddOpen} form={form} onSubmit={handleSubmit} />;
+  return (
+    <AttendanceAddDialog
+      open={isAddOpen}
+      onOpenChange={setIsAddOpen}
+      form={form}
+      onSubmit={handleSubmit}
+      error={error}
+    />
+  );
 }

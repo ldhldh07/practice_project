@@ -13,9 +13,10 @@ type EmployeeEditDialogProps = {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<UpdateEmployeeFormData>;
   onSubmit: () => Promise<void> | void;
+  error?: string | null;
 };
 
-export function EmployeeEditDialog({ open, onOpenChange, form, onSubmit }: Readonly<EmployeeEditDialogProps>) {
+export function EmployeeEditDialog({ open, onOpenChange, form, onSubmit, error }: Readonly<EmployeeEditDialogProps>) {
   const id = useId();
   const {
     register,
@@ -32,6 +33,7 @@ export function EmployeeEditDialog({ open, onOpenChange, form, onSubmit }: Reado
       onSubmit={onSubmit}
       submitLabel="수정"
       disabled={isSubmitting}
+      error={error}
     >
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

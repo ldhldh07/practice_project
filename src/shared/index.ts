@@ -10,6 +10,8 @@ export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 export { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 export { FormDialog } from "./ui/form-dialog";
+export { DialogErrorMessage } from "./ui/dialog-error-message";
+export { ErrorFallback } from "./ui/error-fallback";
 export { HighlightText } from "./ui/highlight-text";
 
 export { createHttpClient, type HttpClient } from "./api/client";
@@ -29,6 +31,7 @@ export {
   ValidationError,
   ResponseParseError,
   AppError,
+  isExpectedError,
 } from "./lib/errors";
 
 export {
