@@ -45,7 +45,7 @@ shared/
 | `ApiError`                         | HTTP/API 에러 (statusCode, code, data)                             |
 | `ValidationError`                  | Zod 검증 실패 (issues 배열)                                        |
 | `BadRequestError`, `NotFoundError` | 특화된 API 에러                                                    |
-| `isExpectedError()`                | 400/404/409 → expected (인라인 표시), 나머지 → unexpected (토스트) |
+| `isExpectedError()`                | 에러 코드 기반 allowlist (`EXPECTED_ERROR_CODES: ReadonlySet`) — 도메인 에러 코드 포함 |
 
 ## 검증 패턴 (validate.ts)
 

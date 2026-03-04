@@ -76,9 +76,12 @@ FSD, Jotai, TanStack Query, Zod, Error handling, and domain dependency review ch
 
 - Error codes are centralized in `shared/lib/errors/error-codes.ts`.
 - Unknown external failures are normalized near API/data layer.
-- Error classification uses `isExpectedError()`:
-  - Expected (400/404/409) → inline error banner inside dialog/form.
-  - Unexpected (network/5xx) → `MutationCache.onError` global toast.
+- Error classification uses `isExpectedError()` — code-based allowlist (`EXPECTED_ERROR_CODES: ReadonlySet`):
+  - Expected (domain codes like `EMPLOYEE_DUPLICATE_EMAIL`, plus `BAD_REQUEST`/`NOT_FOUND`/`CONFLICT`) → inline error banner inside dialog/form.
+  - Unexpected (codes not in allowlist — network/5xx/unknown) → `MutationCache.onError` global toast.
+  - Safe default: new error codes automatically fall to unexpected → ErrorBoundary/toast. No silent failure.
+- Server response body `code` field is parsed by `extractServerErrorCode` in `client.ts` and set on `ApiError.code`.
+- TanStack Query `Register.defaultError = ApiError` provides global error type inference.
 - Mutation flow follows declarative pattern:
   - `mutateAsync` + close-on-success (dialog closes only on success).
   - `mutation.reset()` on dialog open (prevents stale error display).

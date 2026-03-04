@@ -245,8 +245,12 @@ Selection rule:
 ### Error Evidence Examples In This Repo
 
 - centralized codes/messages: `src/shared/lib/errors/error-codes.ts`
+- domain error codes (server business rule violations): `DOMAIN_ERROR_CODES` in `error-codes.ts`
 - typed error classes: `src/shared/lib/errors/errors.ts`
+- code-based `isExpectedError`: `EXPECTED_ERROR_CODES: ReadonlySet` (allowlist — safe default for new codes)
+- server response code parsing: `extractServerErrorCode` in `src/shared/api/client.ts`
 - API boundary throw mapping: `src/shared/lib/validate.ts`
+- TanStack Query defaultError registration: `src/shared/types/tanstack-query.d.ts`
 
 ## Domain Dependency Management
 
