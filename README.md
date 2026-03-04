@@ -29,11 +29,13 @@ FSD의 규칙을 정확히 지키기 보다는 큰 방향성에 맞춰 스스로
 src/
 ├── app/                             # 애플리케이션 설정
 │   └── ui/
-│       ├── layout.tsx               # 전체 레이아웃
-│       └── query-provider.tsx       # TanStack Query 설정
+│       ├── layout.tsx               # 전체 레이아웃 + ErrorBoundary
+│       └── query-provider.tsx       # TanStack Query 설정 + MutationCache
 │
 ├── pages/                           # 페이지 컴포넌트
-│   └── employee-manager-page.tsx    # 직원 관리 페이지
+│   ├── employee-manager/            # 직원 관리 페이지
+│   ├── employee-detail/             # 직원 상세 페이지
+│   └── not-found/                   # 404 페이지
 │
 ├── widgets/                         # 페이지 구성 단위
 │   └── employee-manager/ui/
@@ -43,8 +45,12 @@ src/
 │
 ├── features/                        # 사용자 시나리오 (비즈니스 로직)
 │   ├── department-tree/             # 부서 트리 기능
+│   ├── employee-browse/             # 직원 목록 탐색
+│   ├── employee-detail/             # 직원 상세 조회
 │   ├── employee-filter/             # 직원 필터/검색 기능
 │   ├── employee-edit/               # 직원 편집 기능
+│   ├── employee-dialogs/            # 직원 다이얼로그 조합
+│   ├── employee-load/               # 직원 데이터 로딩 쿼리
 │   └── attendance-edit/             # 근태 편집 기능
 │
 ├── entities/                        # 비즈니스 엔티티 (순수 데이터)
@@ -55,14 +61,16 @@ src/
 │   │   │   ├── employee.hook.ts     # 직원 훅
 │   │   │   ├── employee.keys.ts     # Query Key
 │   │   │   └── employee.schema.ts   # Zod 스키마
-│   │   └── ui/                      # 순수 UI 컴포넌트
+│   │   └── ui/                      # 순수 UI (비즈니스 로직 ❌, 사이드 이펙트 ❌, 외부 의존성 ❌)
 │   └── attendance/                  # 근태 엔티티
 │
 └── shared/                          # 공통 유틸리티
-    ├── api/client.ts                # HTTP 클라이언트
+    ├── api/client.ts                # HTTP 클라이언트 (타입화된 에러 throw)
+    ├── config/                      # 라우트, 환경 설정
     ├── lib/
     │   ├── validate.ts              # API 검증 유틸
-    │   └── errors/                  # 에러 코드/타입
+    │   └── errors/                  # 에러 코드/타입/분류
+    ├── types/                       # 공통 타입 정의
     └── ui/                          # 공통 UI 컴포넌트
 ```
 
@@ -114,7 +122,10 @@ export function EmployeeEditDialogContainer() {
 - hook은 ui 상태나 사이드 이펙트를 유발하는 동작을 포함한다
 - entity는 직접적으로 데이터를 다룬다
   - 외부 라이브러리의 의존성을 가지는 경우 entity 레이어에 격리한다
-  - ui는 순수하게 ui만을 그린다
+  - ui는 순수하게 ui만을 그린다 — 비즈니스 로직 ❌, 사이드 이펙트 ❌, 외부 의존성 ❌
+    - React 내장 훅 허용 (`useState`, `useRef`, `useMemo`, `useCallback`)
+    - 외부 context 훅은 callback props로 대체 (`useNavigate` → `onRowClick` 등)
+    - 비즈니스 로직 훅 금지 (`useMutation`, `useQueryClient`, `useAtom` 등)
 
 ```typescript
 // before
@@ -669,6 +680,13 @@ export const AppError = {
 
 이렇게 분리해두면, 동일한 에러 기준을 여러 화면에서 재사용할 수 있고
 UI 코드에 저수준 에러 분기(`if status === 401`)가 퍼지는 걸 막을 수 있었습니다.
+
+추가로, 에러를 소비하는 UI 레벨에서는 선언적 패턴으로 처리합니다.
+
+- **예상 가능한 에러** (400, 404, 409): 다이얼로그 내부에 인라인 에러 배너로 표시
+- **예상 불가능한 에러** (네트워크, 5xx): `MutationCache.onError`에서 전역 토스트로 표시
+- **mutation flow**: `mutateAsync` + close-on-success 패턴으로 성공 시에만 다이얼로그를 닫고, 실패 시 에러를 다이얼로그 안에서 확인 가능
+- **stale error 방지**: 다이얼로그가 열릴 때 `mutation.reset()`으로 이전 에러 초기화
 
 ### 6. 페이지네이션 깜빡임 방지
 
