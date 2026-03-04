@@ -17,7 +17,7 @@
 - `pages`: route entry, URL reading, route-level guard composition only.
 - `widgets`: compose multiple features; no direct entity business orchestration.
 - `features`: user scenario orchestration, mutation flow, atom/query composition.
-- `entities`: domain data contract, query hooks, atom model, pure/presentational UI.
+- `entities`: domain data contract, query hooks, atom model, pure/presentational UI (비즈니스 로직 ❌, 사이드 이펙트 ❌, 외부 의존성 ❌).
 - `shared`: framework-agnostic utility, API client, error/validation primitives, UI primitives.
 
 ## Layer Entry/Exit Criteria
@@ -51,7 +51,7 @@
 
 - `pages` or `widgets` directly import entity internals for orchestration.
 - A `feature` reads/writes route params in multiple places for the same scenario owner.
-- Entity presenter UI imports router, query, or mutation hooks.
+- Entity presenter UI uses hooks with business logic, side effects, or external dependencies (e.g. `useNavigate`, `useMutation`, `useQueryClient`). React built-in hooks (`useState`, `useRef`, `useMemo`, `useCallback`) are allowed. External context hooks must be replaced with callback props.
 - Same semantic state appears in both URL params and atom without explicit owner.
 - Query key uses non-stable object identity without explicit serialization/normalization.
 - New external API response enters app without zod validation.
@@ -66,8 +66,11 @@
   - `model/*.atom.ts`: domain atoms
   - `model/*.types.ts`: derived TS types
   - `hooks/*`: query hooks and atom access wrappers
-  - `ui/*`: props-only presenter UI
-- Entity UI must not call router/query/mutation directly.
+  - `ui/*`: props-only presenter UI — 허용 기준: 비즈니스 로직 ❌, 사이드 이펙트 ❌, 외부 의존성 ❌
+    - React 내장 훅 허용 (`useState`, `useRef`, `useMemo`, `useCallback`)
+    - 외부 context 훅은 callback props로 대체 (`useNavigate` → `onRowClick` 등)
+    - 비즈니스 로직 훅 금지 (`useMutation`, `useQueryClient`, `useAtom` 등 — entity hook 래퍼를 통해 제공)
+- Entity UI must not call router/query/mutation directly; use callback props instead.
 - Entity model can own domain constraints, but cannot own app flow decisions.
 - Keep API response schema and inferred type in the same model scope.
 
