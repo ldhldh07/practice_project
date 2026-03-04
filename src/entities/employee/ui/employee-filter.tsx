@@ -1,9 +1,8 @@
 import { Search } from "lucide-react";
 
+import type { EmployeeSortBy, SortOrder } from "@/shared/config/routes";
 import { Input } from "@/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
-
-import type { EmployeeSortBy, SortOrder } from "../model/employee.types";
 
 type EmployeeFilterProps = {
   search: string;

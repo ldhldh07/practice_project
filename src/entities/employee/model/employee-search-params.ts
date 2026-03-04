@@ -1,35 +1,23 @@
 import { useSearchParams } from "react-router-dom";
 
-import type { EmployeeSortBy, SortOrder } from "./employee.types";
-
-export type EmployeeSearchParams = {
-  limit: number;
-  skip: number;
-  search?: string;
-  departmentId?: number;
-  status?: string;
-  sortBy?: EmployeeSortBy;
-  order?: SortOrder;
-};
-
-const DEFAULTS: EmployeeSearchParams = {
-  limit: 10,
-  skip: 0,
-  sortBy: "id",
-  order: "asc",
-};
+import {
+  EMPLOYEE_SEARCH_DEFAULTS,
+  type EmployeeSearchParams,
+  type EmployeeSortBy,
+  type SortOrder,
+} from "@/shared/config/routes";
 
 export function useEmployeeSearchParams() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const params: EmployeeSearchParams = {
-    limit: Number(searchParams.get("limit") || DEFAULTS.limit),
-    skip: Number(searchParams.get("skip") || DEFAULTS.skip),
+    limit: Number(searchParams.get("limit") || EMPLOYEE_SEARCH_DEFAULTS.limit),
+    skip: Number(searchParams.get("skip") || EMPLOYEE_SEARCH_DEFAULTS.skip),
     search: searchParams.get("search") || undefined,
     departmentId: searchParams.get("departmentId") ? Number(searchParams.get("departmentId")) : undefined,
     status: searchParams.get("status") || undefined,
-    sortBy: (searchParams.get("sortBy") as EmployeeSortBy | null) || DEFAULTS.sortBy,
-    order: (searchParams.get("order") as SortOrder | null) || DEFAULTS.order,
+    sortBy: (searchParams.get("sortBy") as EmployeeSortBy | null) || EMPLOYEE_SEARCH_DEFAULTS.sortBy,
+    order: (searchParams.get("order") as SortOrder | null) || EMPLOYEE_SEARCH_DEFAULTS.order,
   };
 
   const setParams = (next: Partial<EmployeeSearchParams>) => {

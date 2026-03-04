@@ -1,4 +1,5 @@
-export type { Employee, EmployeeSortBy, SortOrder } from "./model/employee.types";
+export type { Employee } from "./model/employee.types";
+export type { EmployeeSearchParams, EmployeeSortBy, SortOrder } from "@/shared/config/routes";
 export type { EmployeeStatus } from "./model/employee.schema";
 export type {
   EmployeesParams,
@@ -6,7 +7,6 @@ export type {
   CreateEmployeeParams,
   UpdateEmployeePayload,
 } from "./api/employee.api";
-export type { EmployeeSearchParams } from "./model/employee-search-params";
 
 export { employeeApi } from "./api/employee.api";
 export { employeeQueryKeys } from "./model/employee.keys";
