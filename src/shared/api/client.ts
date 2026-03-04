@@ -64,9 +64,29 @@ export function createHttpClient(baseUrl: string): HttpClient {
     return prefix;
   }
 
+  function extractServerErrorCode(data: unknown): string | undefined {
+    if (typeof data !== 'object' || data === null) return undefined;
+    const obj = data as Record<string, unknown>;
+    // { code: "EMPLOYEE_DUPLICATE_EMAIL", message: "..." }
+    if (typeof obj.code === 'string') return obj.code;
+    // { error: { code: "EMPLOYEE_DUPLICATE_EMAIL", message: "..." } }
+    if (typeof obj.error === 'object' && obj.error !== null) {
+      const inner = obj.error as Record<string, unknown>;
+      if (typeof inner.code === 'string') return inner.code;
+    }
+    return undefined;
+  }
+
   function mapHttpError(status: number, statusText: string, data?: unknown, text?: string): Error {
     const message = getErrorMessage(status, statusText, data, text);
+    const serverCode = extractServerErrorCode(data);
 
+    // 서버가 도메인 에러 코드를 응답한 경우 해당 코드 사용
+    if (serverCode) {
+      return new ApiError(message, serverCode, status, data);
+    }
+
+    // 서버 코드 없으면 HTTP status 기반 폴백
     if (status === 400) return new BadRequestError(message, data);
     if (status === 404) return new NotFoundError(message);
     if (status === 401 || status === 403) {

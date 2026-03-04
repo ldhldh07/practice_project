@@ -1,7 +1,14 @@
-import { ERROR_CODES } from "./error-codes";
+import { DOMAIN_ERROR_CODES, ERROR_CODES } from "./error-codes";
 
 import type { ZodIssue } from "zod";
 
+// 인라인 표시 대상 에러 코드 (MutationCache에서 toast 스킵)
+const EXPECTED_ERROR_CODES: ReadonlySet<string> = new Set([
+  ERROR_CODES.BAD_REQUEST,
+  ERROR_CODES.NOT_FOUND,
+  ERROR_CODES.CONFLICT,
+  ...Object.values(DOMAIN_ERROR_CODES),
+]);
 export class BaseError extends Error {
   readonly code: string;
 
@@ -77,8 +84,7 @@ export const AppError = {
   isApi: (error: unknown): error is ApiError => error instanceof ApiError,
   isExpected: (error: unknown): boolean => {
     if (!(error instanceof ApiError)) return false;
-    const expectedStatuses = new Set([400, 404, 409]);
-    return error.statusCode !== undefined && expectedStatuses.has(error.statusCode);
+    return EXPECTED_ERROR_CODES.has(error.code);
   },
   isNetwork: (error: unknown): error is NetworkError => error instanceof NetworkError,
   isValidation: (error: unknown): error is ValidationError => error instanceof ValidationError,
